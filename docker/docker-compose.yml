@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: freeledger-postgres
+    environment:
+      POSTGRES_DB: freeledger
+      POSTGRES_USER: freeledger
+      POSTGRES_PASSWORD: freeledger_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U freeledger"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: freeledger-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ipfs:
+    image: ipfs/kubo:v0.28.0
+    container_name: freeledger-ipfs
+    ports:
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ipfs_data:/data/ipfs
+      - ./ipfs/config.sh:/container-init.d/config.sh
+    environment:
+      IPFS_PROFILE: server
+
+  hardhat:
+    image: node:18
+    container_name: freeledger-hardhat
+    working_dir: /app
+    ports:
+      - "8545:8545"
+    volumes:
+      - ../contracts:/app
+    command: >
+      sh -c "npm install && npx hardhat node --hostname 0.0.0.0"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:
+  ipfs_data:

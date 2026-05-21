@@ -1,0 +1,31 @@
+@startuml
+skinparam activity {
+    DiamondBackgroundColor white
+    DiamondBorderColor #333333
+    DiamondFontSize 11
+    BarColor #333333
+    StartColor #333333
+    EndColor #333333
+    BackgroundColor #FAFAFA
+    ArrowColor #333333
+}
+
+skinparam roundcorner 8
+skinparam arrowsize 10
+
+start
+:Connect MetaMask;
+:Generate Challenge\n"Login: {timestamp}";
+:User Signs Message;
+
+if (Signature Valid?) then (Yes)
+    :Create Session\nRedis, 1 hour;
+    :Store JWT in\nsessionStorage;
+    :Redirect to\nDashboard;
+    stop
+else (No)
+    :Show Error\n"Invalid Signature";
+    stop
+endif
+
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+title Privacy Architecture - Data Flow
+
+actor "User Wallet" as Wallet
+
+package "Session Store (Redis)" {
+    database "Session Data" as Session
+}
+
+package "PostgreSQL" {
+    rectangle "users" as Users
+    rectangle "contracts" as Contracts
+}
+
+package "Blockchain" {
+    rectangle "Smart Contract"
+}
+
+package "IPFS" {
+    rectangle "Contract Terms"
+    rectangle "Deliverables"
+}
+
+Wallet --> Session : "Session ONLY\n1 hour expiry"
+Wallet -> Blockchain : "Public\n(transparent)"
+Blockchain --> IPFS : "CID Reference"
+
+@enduml

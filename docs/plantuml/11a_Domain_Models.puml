@@ -1,0 +1,57 @@
+@startuml Domain_Models
+!theme plain
+skinparam linetype ortho
+skinparam nodesep 25
+skinparam ranksep 35
+
+title Domain Models (Enums)
+
+package "Domain Models" {
+    
+    package "UserRole" {
+        enum URole {
+            Client
+            Freelancer
+            Admin
+        }
+    }
+    
+    package "ContractStatus" {
+        enum CStatus {
+            Draft
+            Pending
+            Signed
+            Active
+            Completed
+            Disputed
+        }
+    }
+    
+    package "MilestoneStatus" {
+        enum MStatus {
+            Pending
+            Submitted
+            Approved
+            Paid
+            RevisionRequested
+        }
+    }
+    
+    package "DisputeStatus" {
+        enum DStatus {
+            PendingReview
+            UnderReview
+            Resolved
+        }
+    }
+    
+    package "DisputeDecision" {
+        enum DDecision {
+            FreelancerWins
+            ClientWins
+        }
+    }
+    
+}
+
+@enduml

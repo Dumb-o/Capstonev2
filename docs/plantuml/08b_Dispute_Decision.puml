@@ -1,0 +1,72 @@
+@startuml Dispute_Decision
+!theme plain
+hide footbox
+
+title Dispute Resolution - Admin Decision
+
+actor "Freelancer" as Freelancer
+actor "Client" as Client
+actor "Admin" as Admin
+participant "Frontend" as FE
+participant "Backend API" as API
+participant "PostgreSQL" as DB
+participant "Smart Contract" as SC
+participant "Ethereum" as ETH
+
+== Step 4: Admin Decision ==
+
+Admin -> FE : Select dispute to resolve
+
+alt Decision: Pay Freelancer (Full)
+    Admin -> FE : Select "Pay Freelancer"
+    Admin -> FE : Click "Execute Decision"
+    
+    FE -> SC : Call resolveDispute(contractId, 1)
+    activate SC
+    SC -> ETH : Transfer ALL to freelancer
+    activate ETH
+    ETH -->> SC : Confirmed
+    deactivate ETH
+    SC -->> FE : Return txHash
+    deactivate SC
+    
+    FE -> API : POST /api/disputes/:id/resolve\n{decision: freelancer_wins, txHash}
+    activate API
+    API -> DB : Update dispute\nstatus: resolved, decision: freelancer_wins
+    activate DB
+    DB -->> API : Confirm
+    deactivate DB
+    API -->> FE : Resolved
+    deactivate API
+
+else Decision: Refund Client
+    Admin -> FE : Select "Refund Client"
+    Admin -> FE : Click "Execute Decision"
+    
+    FE -> SC : Call resolveDispute(contractId, 2)
+    activate SC
+    SC -> ETH : Transfer ALL back to client
+    activate ETH
+    ETH -->> SC : Confirmed
+    deactivate ETH
+    SC -->> FE : Return txHash
+    deactivate SC
+    
+    FE -> API : POST /api/disputes/:id/resolve\n{decision: client_wins, txHash}
+    activate API
+    API -> DB : Update dispute\nstatus: resolved, decision: client_wins
+    activate DB
+    DB -->> API : Confirm
+    deactivate DB
+    API -->> FE : Resolved
+    deactivate API
+end
+
+== Notify Parties ==
+
+API -> Client : Notify "Dispute resolved\n[decision summary]"
+API -> Freelancer : Notify "Dispute resolved\n[decision summary]"
+
+FE -> Admin : Show "Dispute Resolved"
+
+@enduml

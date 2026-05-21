@@ -1,0 +1,54 @@
+@startuml 12_Dispute_Activity
+!theme plain
+hide footbox
+
+skinparam activityPadding 20
+skinparam diamondPadding 15
+
+title Dispute Initiation & Resolution Activity Diagram
+
+start
+
+:User raises dispute;
+
+if (Who raises dispute?) then (Client)
+  :Notify Freelancer;
+else (Freelancer)
+  :Notify Client;
+endif
+
+:Backend stores dispute\n(status: pending);
+
+:Notify Admin;
+
+:Admin views pending disputes;
+
+:Admin reviews:\n- Contract details\n- Escrow state\n- Milestone status;
+
+:Admin fetches deliverables\nfrom IPFS if needed;
+
+:Admin approves for resolution;
+
+:Admin selects decision;
+
+if (Decision) then (Pay Freelancer)
+  :Smart Contract executes\nresolveDispute(contractId, 1);
+  :Transfer ALL funds\nto Freelancer;
+  :Update DB: freelancer_wins;
+else (Refund Client)
+  :Smart Contract executes\nresolveDispute(contractId, 2);
+  :Transfer ALL funds\nback to Client;
+  :Update DB: client_wins;
+endif
+
+:Ethereum confirms transaction;
+
+:Notify Client of outcome;
+
+:Notify Freelancer of outcome;
+
+:Display resolved to Admin;
+
+stop
+
+@enduml
