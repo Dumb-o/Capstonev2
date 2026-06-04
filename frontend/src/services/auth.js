@@ -20,8 +20,8 @@ export async function signMessage(provider, message) {
   return await signer.signMessage(message);
 }
 
-export async function login(address, signature) {
-  const { data } = await api.post('/auth/login', { address, signature });
+export async function login(address, signature, role) {
+  const { data } = await api.post('/auth/login', { address, signature, role });
   storeAuth(data);
   return data.user;
 }

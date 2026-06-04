@@ -12,7 +12,7 @@ export function useAuth() {
   const { dispatch } = useApp();
   const navigate = useNavigate();
 
-  const authenticate = async () => {
+  const authenticate = async (role) => {
     setLoading(true);
     setError(null);
     try {
@@ -21,7 +21,7 @@ export function useAuth() {
 
       const nonce = await getChallenge(address);
       const signature = await signMessage(provider, nonce);
-      const user = await login(address, signature);
+      const user = await login(address, signature, role);
 
       dispatch({ type: 'SET_USER', payload: user });
       navigate('/dashboard');

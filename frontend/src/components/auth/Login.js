@@ -26,7 +26,7 @@ export default function Login() {
   };
 
   const handleMetaMask = async () => {
-    await authenticate();
+    await authenticate(role);
   };
 
   const fillDemo = () => {
@@ -84,13 +84,6 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-            </div>
-            <div className="form-group">
-              <label>Role</label>
-              <select value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="freelancer">Freelancer</option>
-                <option value="client">Client</option>
-              </select>
             </div>
             <div className="demo-hint" onClick={fillDemo}>
               <span className="demo-label">Demo</span>
@@ -155,6 +148,14 @@ export default function Login() {
         )}
 
         <div className="auth-toggle">or</div>
+
+        <div className="form-group">
+          <label>I am joining as</label>
+          <select value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="freelancer">Freelancer</option>
+            <option value="client">Client</option>
+          </select>
+        </div>
 
         <button
           className="btn btn-outline btn-block"

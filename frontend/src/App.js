@@ -30,6 +30,14 @@ function ClientRoute({ children }) {
   return children;
 }
 
+function AdminRoute({ children }) {
+  const { state } = useApp();
+  if (state.loading) return <Loading />;
+  if (!state.isAuthenticated) return <Navigate to="/login" replace />;
+  if (state.user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
 function AppRoutes() {
   const { state } = useApp();
 
@@ -74,7 +82,7 @@ function AppRoutes() {
       />
       <Route
         path="/admin"
-        element={<ClientRoute><AdminPanel /></ClientRoute>}
+        element={<AdminRoute><AdminPanel /></AdminRoute>}
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
