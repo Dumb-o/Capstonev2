@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FreeLedger — My Contracts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+  <nav class="dash-nav">
+    <div class="dash-nav-left">
+      <a class="nav-logo" href="../freeledger/index.html">
+        <div class="nav-logo-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        FreeLedger
+      </a>
+      <div class="portal-tag">FREELANCER PORTAL</div>
+      <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="jobs.html">Find Jobs</a>
+        <a class="active" href="contracts.html">My Contracts</a>
+        <a href="profile.html">My Profile</a>
+        <a href="messages.html">Messages</a>
+      </div>
+    </div>
+    <div class="dash-nav-right">
+      <button class="btn btn-outline btn-sm" onclick="AUTH.logout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
+      <div class="user-chip">
+        <div class="user-info"><div class="uname" id="nav-uname">—</div><div class="urole" id="nav-urole">Freelancer</div></div>
+        <div class="user-avatar" id="nav-avatar">?</div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-body">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">My Contracts</h1>
+        <p class="page-sub">Track your active work and submit deliverables</p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" style="margin-bottom:28px">
+      <div class="stat-card">
+        <div class="s-top"><span class="s-label">Total</span>
+          <div class="s-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        </div>
+        <div class="s-val" id="st-total">0</div><div class="s-sub">All time</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-top"><span class="s-label">Active</span>
+          <div class="s-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        </div>
+        <div class="s-val" id="st-active">0</div><div class="s-badge">In progress</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-top"><span class="s-label">Total Earned</span>
+          <div class="s-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+        </div>
+        <div class="s-val" id="st-earned">$0</div>
+        <div style="font-size:12px;color:var(--accent);margin-top:4px;font-weight:600">Via Escrow</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-top"><span class="s-label">Completed</span>
+          <div class="s-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="s-val" id="st-done">0</div>
+        <div class="s-sub" id="st-done-sub">–</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="filterTab('all',this)">All</button>
+      <button class="tab" onclick="filterTab('active',this)">Active</button>
+      <button class="tab" onclick="filterTab('pending',this)">Pending</button>
+      <button class="tab" onclick="filterTab('completed',this)">Completed</button>
+    </div>
+
+    <div id="contracts-list"></div>
+    <div class="empty-state" id="contracts-empty" style="display:none">
+      <div class="empty-icon">📄</div>
+      <h3>No contracts yet</h3>
+      <p>Apply to jobs to start getting contracts.</p>
+      <button class="btn btn-primary btn-sm" onclick="location.href='jobs.html'">Browse Jobs →</button>
+    </div>
+  </div>
+
+  <!-- Contract Detail Modal -->
+  <div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)document.getElementById('detail-modal').classList.remove('open')">
+    <div class="modal-box" style="max-width:640px">
+      <button class="modal-close" onclick="document.getElementById('detail-modal').classList.remove('open')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <div id="detail-body"></div>
+    </div>
+  </div>
+
+  <!-- Submit Deliverable Modal -->
+  <div class="modal-overlay" id="deliver-modal" onclick="if(event.target===this)document.getElementById('deliver-modal').classList.remove('open')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('deliver-modal').classList.remove('open')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <h2 style="font-size:18px;font-weight:800;margin-bottom:6px">Submit Deliverable</h2>
+      <p style="font-size:13px;color:var(--text-2);margin-bottom:20px">Your file will be stored on IPFS (Kubo) and the CID anchored on-chain via smart contract.</p>
+      <div style="border:2px dashed var(--accent-border);border-radius:10px;padding:32px;text-align:center;cursor:pointer;background:var(--accent-pale)" onclick="document.getElementById('file-input').click()">
+        <div style="font-size:32px;margin-bottom:8px">📦</div>
+        <div style="font-size:15px;font-weight:700;color:var(--accent);margin-bottom:4px">Click to upload deliverable</div>
+        <div style="font-size:13px;color:var(--text-3)">Any file type — PDF, ZIP, images, code</div>
+        <input type="file" id="file-input" style="display:none" onchange="onFileSelect(this)">
+      </div>
+      <div id="file-info" style="display:none;margin-top:12px;padding:12px;background:var(--accent-pale);border:1px solid var(--accent-border);border-radius:8px;font-size:13px;color:var(--accent);font-weight:600"></div>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Notes to Client</label>
+        <textarea class="form-input" id="deliver-notes" rows="3" placeholder="Describe what you've delivered…" style="resize:vertical"></textarea>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="submitDeliverable()">Submit & Anchor on IPFS →</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span class="toast-icon">✅</span><span id="toast-msg">Done!</span></div>
+  <script src="../freeledger/auth.js"></script>
+  <script src="contracts.js"></script>
+</body>
+</html>

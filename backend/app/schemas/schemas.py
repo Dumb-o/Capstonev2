@@ -15,6 +15,7 @@ class ChallengeResponse(BaseModel):
 class LoginRequest(BaseModel):
     address: str = Field(..., pattern="^0x[a-fA-F0-9]{40}$")
     signature: str
+    role: Optional[str] = None
 
 
 class TokenResponse(BaseModel):

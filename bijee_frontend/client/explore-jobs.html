@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FreeLedger — Explore Jobs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="explore-jobs.css">
+</head>
+<body>
+
+  <nav class="dash-nav">
+    <div class="dash-nav-left">
+      <a class="nav-logo" href="dashboard.html">
+        <div class="nav-logo-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        FreeLedger
+      </a>
+      <div class="dash-tag" id="dash-tag">CLIENT PORTAL</div>
+      <div class="dash-nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a class="active" href="explore-jobs.html">Explore Jobs</a>
+        <a href="my-contracts.html">My Contracts</a>
+        <a href="messages.html">Messages</a>
+      </div>
+    </div>
+    <div class="dash-nav-right">
+      <button class="btn btn-primary btn-sm" onclick="openPostModal()">+ Post New Project</button>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
+      <div class="user-chip">
+        <div class="user-info">
+          <div class="uname" id="dash-uname">—</div>
+          <div class="urole" id="dash-urole">—</div>
+        </div>
+        <div class="user-avatar" id="dash-avatar">?</div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="dash-body">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Explore Jobs</h1>
+        <p class="page-sub">Browse <span id="job-count">0</span> open projects from verified clients</p>
+      </div>
+      <div class="header-actions">
+        <div class="view-toggle">
+          <button class="view-btn active" id="view-grid" onclick="setView('grid')" title="Grid view">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </button>
+          <button class="view-btn" id="view-list" onclick="setView('list')" title="List view">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="filters-bar">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" class="search-input" id="job-search" placeholder="Search jobs, skills, keywords…" oninput="filterJobs()">
+      </div>
+      <select class="filter-select" id="filter-category" onchange="filterJobs()">
+        <option value="">All Categories</option>
+        <option>Development</option>
+        <option>Design</option>
+        <option>Marketing</option>
+        <option>Writing</option>
+        <option>Smart Contracts</option>
+        <option>Data & Analytics</option>
+      </select>
+      <select class="filter-select" id="filter-budget" onchange="filterJobs()">
+        <option value="">Any Budget</option>
+        <option value="0-500">Under $500</option>
+        <option value="500-2000">$500 – $2,000</option>
+        <option value="2000-5000">$2,000 – $5,000</option>
+        <option value="5000+">$5,000+</option>
+      </select>
+      <select class="filter-select" id="filter-type" onchange="filterJobs()">
+        <option value="">All Types</option>
+        <option>Fixed Price</option>
+        <option>Hourly</option>
+        <option>Milestone</option>
+      </select>
+      <button class="btn btn-outline btn-sm" onclick="clearFilters()">Clear</button>
+    </div>
+
+    <!-- Active Filters Tags -->
+    <div class="active-filters" id="active-filters"></div>
+
+    <!-- Jobs Grid -->
+    <div class="jobs-grid" id="jobs-container"></div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="empty-state" style="display:none">
+      <div class="empty-icon">🔍</div>
+      <h3>No jobs found</h3>
+      <p>Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline btn-sm" onclick="clearFilters()">Clear Filters</button>
+    </div>
+
+  </div>
+
+  <!-- Job Detail Modal -->
+  <div class="modal-overlay" id="job-modal" onclick="closeModal(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeJobModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Post Project Modal -->
+  <div class="modal-overlay" id="post-modal" onclick="closePostModal(event)">
+    <div class="modal-box modal-box-wide">
+      <button class="modal-close" onclick="document.getElementById('post-modal').classList.remove('open')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:6px">Post a New Project</h2>
+      <p style="font-size:13px;color:var(--text-2);margin-bottom:24px">Fill in the details to find the right talent.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Project Title</label>
+          <input class="form-input" id="post-title" placeholder="e.g. Build a DeFi Dashboard">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-input" id="post-category">
+            <option>Development</option><option>Design</option><option>Marketing</option>
+            <option>Writing</option><option>Smart Contracts</option><option>Data & Analytics</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" id="post-desc" rows="4" placeholder="Describe the project scope, deliverables, and requirements…" style="resize:vertical"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Budget ($)</label>
+          <input class="form-input" id="post-budget" type="number" placeholder="e.g. 2000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contract Type</label>
+          <select class="form-input" id="post-type">
+            <option>Fixed Price</option><option>Hourly</option><option>Milestone</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Required Skills (comma separated)</label>
+        <input class="form-input" id="post-skills" placeholder="e.g. Solidity, React, Node.js">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="submitPost()" style="margin-top:8px">Post Project →</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span class="toast-icon">✅</span><span id="toast-msg">Done!</span></div>
+  <script src="explore-jobs.js"></script>
+</body>
+</html>

@@ -60,9 +60,12 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
         user = User(
             wallet_address=address_lower,
             username=f"user_{address_lower[:8]}",
+            role=request.role if request.role else "freelancer",
         )
         db.add(user)
         await db.flush()
+    elif request.role and request.role != user.role:
+        user.role = request.role
 
     access_token = create_access_token(user.id)
     refresh_token = create_refresh_token(user.id)

@@ -34,6 +34,7 @@ async def create_job(
     return JobResponse.model_validate(job)
 
 
+@router.get("", response_model=PaginatedJobs)
 @router.get("/", response_model=PaginatedJobs)
 async def list_jobs(
     category: str | None = Query(None),

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Navbar from '../components/shared/Navbar';
-import Sidebar from '../components/shared/Sidebar';
 import { useApp } from '../context/AppContext';
 import api from '../services/api';
 
@@ -39,62 +38,54 @@ export default function Profile() {
     <div className="app-layout">
       <Navbar />
       <div className="app-content">
-        <Sidebar />
-        <main className="main-content">
-          <div className="page-header">
-            <h2>Profile</h2>
-          </div>
+        <main className="main-content" style={{ padding: 0 }}>
+          <div className="page-body">
+            <div className="page-header">
+              <div>
+                <h1 className="page-title">Profile</h1>
+                <p className="page-sub">Manage your <span>account and preferences</span></p>
+              </div>
+            </div>
 
-          <div className="profile-card">
-            <div className="profile-avatar">
-              {user?.username?.[0]?.toUpperCase() || '?'}
+            <div className="profile-card">
+              <div className="profile-avatar">
+                {user?.username?.[0]?.toUpperCase() || '?'}
+              </div>
+              <div>
+                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{user?.username || 'Unnamed'}</h2>
+                <p className="profile-wallet">{user?.wallet_address}</p>
+                <div style={{ display: 'flex', gap: 12, marginTop: 6, alignItems: 'center' }}>
+                  <span className={`role-badge ${user?.role}`}>{user?.role}</span>
+                  <span className="profile-id">ID: {user?.id?.slice(0, 12)}...</span>
+                </div>
+              </div>
             </div>
-            <div className="profile-info">
-              <p className="profile-wallet">{user?.wallet_address}</p>
-              <p className="profile-id">ID: {user?.id}</p>
-              <p className="profile-role">Role: {user?.role}</p>
-            </div>
-          </div>
 
-          <form onSubmit={handleSave} className="profile-form">
-            <div className="form-group">
-              <label>Username</label>
-              <input
-                type="text"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Bio</label>
-              <textarea
-                value={form.bio}
-                onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                rows={4}
-              />
-            </div>
-            <div className="form-group">
-              <label>Skills (comma-separated)</label>
-              <input
-                type="text"
-                value={form.skills}
-                onChange={(e) => setForm({ ...form, skills: e.target.value })}
-                placeholder="Solidity, React, Python"
-              />
-            </div>
-            <div className="form-group">
-              <label>Hourly Rate (ETH)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={form.hourly_rate}
-                onChange={(e) => setForm({ ...form, hourly_rate: e.target.value })}
-              />
-            </div>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Profile'}
-            </button>
-          </form>
+            <form onSubmit={handleSave} className="profile-form">
+              <div className="card" style={{ padding: 24 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Edit Profile</h3>
+                <div className="form-group">
+                  <label className="form-label">Username</label>
+                  <input className="form-input" type="text" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Bio</label>
+                  <textarea className="form-input" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} rows={4} placeholder="Tell us about yourself..." />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Skills (comma-separated)</label>
+                  <input className="form-input" type="text" value={form.skills} onChange={(e) => setForm({ ...form, skills: e.target.value })} placeholder="Solidity, React, Python" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Hourly Rate (ETH)</label>
+                  <input className="form-input" type="number" step="0.01" value={form.hourly_rate} onChange={(e) => setForm({ ...form, hourly_rate: e.target.value })} />
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? 'Saving...' : 'Save Profile'}
+                </button>
+              </div>
+            </form>
+          </div>
         </main>
       </div>
     </div>

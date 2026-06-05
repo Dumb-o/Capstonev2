@@ -3,18 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { fetchContracts } from '../../services/contracts';
 import api from '../../services/api';
 
-const statusColor = (s) => ({
-  draft: '#6b7280',
-  pending_signatures: '#f59e0b',
-  active: '#10b981',
-  completed: '#3b82f6',
-  cancelled: '#ef4444',
-  disputed: '#f97316',
-  open: '#6366f1',
-  filled: '#8b5cf6',
-  closed: '#6b7280',
-}[s] || '#6b7280');
-
 const categories = [
   'web-dev', 'blockchain', 'mobile', 'design', 'writing',
   'marketing', 'data-science', 'devops', 'other',
@@ -112,223 +100,231 @@ export default function ClientDashboard() {
   const matchRate = Math.min(profilePct + skillPct / 2, 100);
 
   return (
-    <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="page-body">
+      <div className="page-header">
         <div>
-          <h2>Client Dashboard</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Manage your projects and job postings</p>
+          <h1 className="page-title">Client Dashboard</h1>
+          <p className="page-sub">Manage your projects and job postings</p>
         </div>
         <button onClick={() => setShowPostForm(!showPostForm)} className="btn btn-primary">
           {showPostForm ? 'Cancel' : '+ Post a Job'}
         </button>
       </div>
 
-      {showPostForm && (
-        <div className="dashboard-section">
-          <div className="contract-card" style={{ padding: 24 }}>
-            <h3 style={{ marginBottom: 16 }}>Post a New Job</h3>
-            <form onSubmit={handlePostJob} className="contract-form">
-              {error && <div className="error-message">{error}</div>}
-              <div className="form-group">
-                <label>Job Title *</label>
-                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Full Stack Developer Needed" />
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Describe the project scope and requirements..." />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Budget (ETH) *</label>
-                  <input type="number" step="0.01" value={form.budget} onChange={e => setForm({ ...form, budget: e.target.value })} placeholder="5.0" />
-                </div>
-                <div className="form-group">
-                  <label>Duration (days)</label>
-                  <input type="number" value={form.duration_days} onChange={e => setForm({ ...form, duration_days: e.target.value })} placeholder="30" />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Category</label>
-                  <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                    <option value="">Select category</option>
-                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Skills (comma-separated)</label>
-                  <input value={form.skills} onChange={e => setForm({ ...form, skills: e.target.value })} placeholder="React, Solidity, Python" />
-                </div>
-              </div>
-              <button type="submit" className="btn btn-primary" disabled={posting}>
-                {posting ? 'Posting...' : 'Post Job'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
       <div className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-value">{stats.active}</span>
-          <span className="stat-label">Active Projects</span>
+        <div className="stat-card accent-card">
+          <div className="s-top">
+            <span className="s-label">Active Projects</span>
+            <div className="s-icon">▦</div>
+          </div>
+          <div className="s-val">{stats.active}</div>
+          <div className="s-sub">Currently in progress</div>
         </div>
         <div className="stat-card">
-          <span className="stat-value">{stats.completed}</span>
-          <span className="stat-label">Completed</span>
+          <div className="s-top">
+            <span className="s-label">Completed</span>
+            <div className="s-icon">✓</div>
+          </div>
+          <div className="s-val">{stats.completed}</div>
+          <div className="s-sub">Successfully delivered</div>
         </div>
         <div className="stat-card">
-          <span className="stat-value">{stats.spent.toFixed(2)} ETH</span>
-          <span className="stat-label">Total Spent</span>
+          <div className="s-top">
+            <span className="s-label">Total Spent</span>
+            <div className="s-icon">◈</div>
+          </div>
+          <div className="s-val">{stats.spent.toFixed(2)} <span style={{ fontSize: 14, fontWeight: 600 }}>ETH</span></div>
+          <div className="s-sub">Across all projects</div>
         </div>
         <div className="stat-card">
-          <span className="stat-value">{stats.proposals}</span>
-          <span className="stat-label">Pending Proposals</span>
+          <div className="s-top">
+            <span className="s-label">Pending Proposals</span>
+            <div className="s-icon">✉</div>
+          </div>
+          <div className="s-val">{stats.proposals}</div>
+          <span className="s-badge">Awaiting review</span>
         </div>
       </div>
 
-      <div className="dashboard-section">
-        <h3>My Job Postings</h3>
-        {myJobs.length === 0 ? (
-          <div className="empty-state" style={{ padding: '24px 0' }}>
-            <p>You haven't posted any jobs yet.</p>
-            <button onClick={() => setShowPostForm(true)} className="btn btn-primary btn-sm">Post Your First Job</button>
-          </div>
-        ) : (
-          <div className="contracts-list">
-            {myJobs.slice(0, 5).map(job => (
-              <div key={job.id} className="contract-card" style={{ padding: '16px 20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <Link to={`/jobs/${job.id}`} style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{job.title}</Link>
-                  <span style={{ fontWeight: 700, color: 'var(--success)' }}>{job.budget} ETH</span>
-                </div>
-                <div className="contract-meta">
-                  {job.category && <span className="job-category">{job.category}</span>}
-                  {job.duration_days && <span>{job.duration_days} days</span>}
-                  <span style={{ color: 'var(--primary)' }}>{job.proposal_count || 0} proposals</span>
-                </div>
+      <div className="two-col">
+        <div>
+          {showPostForm && (
+            <div className="card" style={{ marginBottom: 20, padding: 0 }}>
+              <div className="card-header">
+                <h3>Post a New Job</h3>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="dashboard-section">
-        <h3>Active Projects</h3>
-        {contracts.filter(c => c.status === 'active' || c.status === 'in_progress').length === 0 ? (
-          <div className="empty-state" style={{ padding: '24px 0' }}>
-            <p>No active projects yet. Post a job to attract freelancers.</p>
-          </div>
-        ) : (
-          <div className="contracts-list">
-            {contracts.filter(c => c.status === 'active' || c.status === 'in_progress').slice(0, 5).map(c => (
-              <Link to={`/contracts/${c.id}`} key={c.id} className="contract-card">
-                <div className="contract-main">
-                  <h3>{c.title}</h3>
-                  <span className="status-badge" style={{ background: statusColor(c.status) }}>{c.status}</span>
-                </div>
-                <div className="contract-meta">
-                  <span>{c.total_amount} ETH</span>
-                  <span>{c.freelancer_id?.slice(0, 12)}...</span>
-                  <span>{new Date(c.created_at).toLocaleDateString()}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="dashboard-section">
-        <h3>Proposals Received</h3>
-        {proposals.length === 0 ? (
-          <div className="empty-state" style={{ padding: '24px 0' }}>
-            <p>No pending proposals for your jobs.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {proposals.slice(0, 5).map(p => (
-              <div key={p.id} className="contract-card" style={{ padding: '16px 20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600, fontSize: 14 }}>Job {p.job_id?.slice(0, 12)}...</span>
-                  <span style={{ fontWeight: 700, color: 'var(--success)' }}>{p.bid_amount} ETH</span>
-                </div>
-                <div className="contract-meta">
-                  <span>Freelancer: {p.freelancer_id?.slice(0, 12)}...</span>
-                  <span>{p.estimated_days ? `${p.estimated_days} days` : ''}</span>
-                  <span>{new Date(p.created_at).toLocaleDateString()}</span>
-                </div>
-                {p.status === 'pending' && (
-                  <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                    <button onClick={() => handleAcceptProposal(p.id)} className="btn btn-sm btn-success">
-                      Accept
-                    </button>
-                    <button onClick={() => handleRejectProposal(p.id)} className="btn btn-sm btn-danger">
-                      Reject
-                    </button>
+              <div className="card-body">
+                <form onSubmit={handlePostJob}>
+                  {error && <div className="error-message">{error}</div>}
+                  <div className="form-group">
+                    <label className="form-label">Job Title *</label>
+                    <input className="form-input" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Full Stack Developer Needed" />
                   </div>
-                )}
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
-                  <em>{p.cover_letter}</em>
+                  <div className="form-group">
+                    <label className="form-label">Description</label>
+                    <textarea className="form-input" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Describe the project scope and requirements..." />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Budget (ETH) *</label>
+                      <input className="form-input" type="number" step="0.01" value={form.budget} onChange={e => setForm({ ...form, budget: e.target.value })} placeholder="5.0" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Duration (days)</label>
+                      <input className="form-input" type="number" value={form.duration_days} onChange={e => setForm({ ...form, duration_days: e.target.value })} placeholder="30" />
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Category</label>
+                      <select className="form-input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                        <option value="">Select category</option>
+                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Skills (comma-separated)</label>
+                      <input className="form-input" value={form.skills} onChange={e => setForm({ ...form, skills: e.target.value })} placeholder="React, Solidity, Python" />
+                    </div>
+                  </div>
+                  <button type="submit" className="btn btn-primary" disabled={posting}>
+                    {posting ? 'Posting...' : 'Post Job'}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          <div className="card" style={{ marginBottom: 20 }}>
+            <div className="card-header">
+              <h3>My Job Postings</h3>
+              {myJobs.length > 0 && <Link to="/jobs" className="view-all">View All</Link>}
+            </div>
+            <div className="card-body">
+              {myJobs.length === 0 ? (
+                <div className="empty-state" style={{ padding: '24px 0', border: 'none', background: 'transparent' }}>
+                  <p>You haven't posted any jobs yet.</p>
+                  <button onClick={() => setShowPostForm(true)} className="btn btn-primary btn-sm" style={{ marginTop: 8 }}>Post Your First Job</button>
+                </div>
+              ) : (
+                myJobs.slice(0, 5).map(job => (
+                  <div key={job.id} className="project-row">
+                    <div className="project-row-top">
+                      <Link to={`/jobs/${job.id}`} className="project-name">{job.title}</Link>
+                      <span className="project-pct">{job.budget} ETH</span>
+                    </div>
+                    <div className="milestone-label">
+                      {job.category && <span className={`cat-${job.category.replace(/-/g, '')}`} style={{ marginRight: 12 }}>{job.category}</span>}
+                      {job.duration_days && <span>{job.duration_days} days</span>}
+                      <span style={{ marginLeft: 12, color: 'var(--blue)' }}>{job.proposal_count || 0} proposals</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <h3>Active Projects</h3>
+              {contracts.filter(c => c.status === 'active' || c.status === 'in_progress').length > 0 && <Link to="/contracts" className="view-all">View All</Link>}
+            </div>
+            <div className="card-body">
+              {contracts.filter(c => c.status === 'active' || c.status === 'in_progress').length === 0 ? (
+                <div className="empty-state" style={{ padding: '24px 0', border: 'none', background: 'transparent' }}>
+                  <p>No active projects yet. Post a job to attract freelancers.</p>
+                </div>
+              ) : (
+                contracts.filter(c => c.status === 'active' || c.status === 'in_progress').slice(0, 5).map(c => (
+                  <div key={c.id} className="project-row">
+                    <div className="project-row-top">
+                      <Link to={`/contracts/${c.id}`} className="project-name">{c.title}</Link>
+                      <span className={`badge badge-${c.status === 'active' ? 'active' : c.status === 'in_progress' ? 'active' : 'pending'}`}>{c.status}</span>
+                    </div>
+                    <div className="milestone-label">
+                      <span style={{ fontWeight: 600, color: 'var(--text)' }}>{c.total_amount} ETH</span>
+                      <span style={{ marginLeft: 16 }}>{c.freelancer_id?.slice(0, 12)}...</span>
+                      <span style={{ marginLeft: 16 }}>{new Date(c.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="card" style={{ marginBottom: 20 }}>
+            <div className="card-header">
+              <h3>Proposals Received</h3>
+              {proposals.length > 0 && <span className="view-all">{proposals.length} new</span>}
+            </div>
+            <div className="card-body">
+              {proposals.length === 0 ? (
+                <div className="empty-state" style={{ padding: '24px 0', border: 'none', background: 'transparent' }}>
+                  <p>No pending proposals for your jobs.</p>
+                </div>
+              ) : (
+                proposals.slice(0, 5).map(p => (
+                  <div key={p.id} className="project-row">
+                    <div className="project-row-top">
+                      <span className="project-name">Job {p.job_id?.slice(0, 12)}...</span>
+                      <span className="project-pct">{p.bid_amount} ETH</span>
+                    </div>
+                    <div className="milestone-label" style={{ marginBottom: 6 }}>
+                      <span>Freelancer: {p.freelancer_id?.slice(0, 12)}...</span>
+                      <span style={{ marginLeft: 12 }}>{p.estimated_days ? `${p.estimated_days} days` : ''}</span>
+                    </div>
+                    {p.status === 'pending' && (
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button onClick={() => handleAcceptProposal(p.id)} className="btn btn-sm btn-success">Accept</button>
+                        <button onClick={() => handleRejectProposal(p.id)} className="btn btn-sm btn-danger">Reject</button>
+                      </div>
+                    )}
+                    {p.cover_letter && (
+                      <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 6, fontStyle: 'italic' }}>
+                        "{p.cover_letter.slice(0, 120)}{p.cover_letter.length > 120 ? '...' : ''}"
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="card" style={{ marginBottom: 20 }}>
+            <div className="card-header">
+              <h3>Profile & Business Match</h3>
+            </div>
+            <div className="card-body">
+              <div className="prog-bar" style={{ marginBottom: 16 }}>
+                <div className="prog-fill" style={{ width: `${profilePct}%` }}></div>
+              </div>
+              <div className="project-row" style={{ border: 'none', paddingTop: 0 }}>
+                <div className="project-row-top">
+                  <span className="milestone-label">Profile Complete</span>
+                  <span className="project-pct">{profilePct}%</span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="dashboard-section">
-        <h3>Profile & Business Match</h3>
-        <div style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          padding: '20px',
-        }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                <span style={{ color: 'var(--text-muted)' }}>Profile Complete</span>
-                <span style={{ fontWeight: 600 }}>{profilePct}%</span>
+              <div className="prog-bar" style={{ marginBottom: 16 }}>
+                <div className="prog-fill" style={{ width: `${Math.min((stats.active + stats.completed) * 20, 100)}%`, background: 'linear-gradient(90deg, var(--green), var(--green))' }}></div>
               </div>
-              <div style={{ height: 6, background: 'var(--bg)', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ width: `${profilePct}%`, height: '100%', background: 'var(--primary)', borderRadius: 3 }} />
+              <div className="project-row" style={{ border: 'none', paddingTop: 0 }}>
+                <div className="project-row-top">
+                  <span className="milestone-label">Hiring Activity</span>
+                  <span className="project-pct" style={{ color: 'var(--green)' }}>{stats.active + stats.completed} contracts</span>
+                </div>
               </div>
-            </div>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                <span style={{ color: 'var(--text-muted)' }}>Hiring Activity</span>
-                <span style={{ fontWeight: 600 }}>{stats.active + stats.completed} contracts</span>
-              </div>
-              <div style={{ height: 6, background: 'var(--bg)', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ width: `${Math.min((stats.active + stats.completed) * 20, 100)}%`, height: '100%', background: 'var(--success)', borderRadius: 3 }} />
-              </div>
+              <Link to="/profile" className="btn btn-outline btn-sm" style={{ marginTop: 8 }}>Update Profile</Link>
             </div>
           </div>
-          <Link to="/profile" className="btn btn-outline btn-sm" style={{ marginTop: 16 }}>
-            Update Profile
-          </Link>
-        </div>
-      </div>
 
-      <div className="dashboard-section">
-        <h3>Quick Actions</h3>
-        <div className="action-grid">
-          <div onClick={() => setShowPostForm(true)} className="action-card" style={{ cursor: 'pointer' }}>
-            <span className="action-icon">📝</span>
-            <span>Post a Job</span>
+          <div className="hire-card">
+            <div className="hc-icon" style={{ fontSize: 22, marginBottom: 8 }}>🔍</div>
+            <h4>Need talent?</h4>
+            <p>Browse freelancer profiles or post a new job to attract the best talent.</p>
+            <button onClick={() => setShowPostForm(true)} className="btn-hire">Post a Job</button>
           </div>
-          <Link to="/jobs" className="action-card">
-            <span className="action-icon">🔍</span>
-            <span>Explore Jobs</span>
-          </Link>
-          <Link to="/contracts" className="action-card">
-            <span className="action-icon">📋</span>
-            <span>All Contracts</span>
-          </Link>
-          <Link to="/messages" className="action-card">
-            <span className="action-icon">💬</span>
-            <span>Messages</span>
-          </Link>
         </div>
       </div>
     </div>

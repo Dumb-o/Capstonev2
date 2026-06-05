@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models.models import (
     Contract, ContractMilestone, Dispute, User, ContractStatus, MilestoneStatus, DisputeStatus
 )
@@ -25,7 +26,7 @@ async def create_contract(
     data: ContractCreate,
     client_id: str,
     client_wallet: str,
-    private_key: str,
+    private_key: str | None = None,
 ) -> Contract:
     terms = {
         "title": data.title,
@@ -39,16 +40,7 @@ async def create_contract(
     ipfs_result = await ipfs_service.upload_file_bytes(terms_json, f"contract_{client_id}.json")
     terms_cid = ipfs_result["cid"]
 
-    on_chain = create_contract_on_chain(
-        freelancer_address=(await db.get(User, data.freelancer_id)).wallet_address,
-        title=data.title,
-        terms_cid=terms_cid,
-        total_amount_wei=to_wei(data.total_amount),
-        deadline=int(data.deadline.timestamp()) if data.deadline else 0,
-        milestone_descs=[m.description for m in data.milestones],
-        milestone_amounts=[to_wei(m.amount) for m in data.milestones],
-        client_private_key=private_key,
-    )
+    pk = private_key or settings.client_private_key
 
     contract = Contract(
         job_id=data.job_id,
@@ -59,8 +51,6 @@ async def create_contract(
         total_amount=data.total_amount,
         deadline=data.deadline,
         terms_cid=terms_cid,
-        on_chain_id=on_chain["on_chain_id"],
-        contract_address=on_chain["contract_address"],
         status=ContractStatus.pending_signatures,
     )
     db.add(contract)
@@ -76,6 +66,23 @@ async def create_contract(
             status=MilestoneStatus.pending,
         )
         db.add(milestone)
+
+    await db.flush()
+
+    if pk:
+        freelancer = await db.get(User, data.freelancer_id)
+        on_chain = create_contract_on_chain(
+            freelancer_address=freelancer.wallet_address,
+            title=data.title,
+            terms_cid=terms_cid,
+            total_amount_wei=to_wei(data.total_amount),
+            deadline=int(data.deadline.timestamp()) if data.deadline else 0,
+            milestone_descs=[m.description for m in data.milestones],
+            milestone_amounts=[to_wei(m.amount) for m in data.milestones],
+            client_private_key=pk,
+        )
+        contract.on_chain_id = on_chain["on_chain_id"]
+        contract.contract_address = on_chain["contract_address"]
 
     return contract
 
@@ -157,8 +164,37 @@ async def sign_contract(db: AsyncSession, contract_id: str, user_id: str) -> Con
         raise AuthorizationError("Not a party to this contract")
 
     if contract.client_signed and contract.freelancer_signed:
-        contract.status = ContractStatus.active
+        contract.status = ContractStatus.pending_funding
 
+    return contract
+
+
+async def fund_contract(
+    db: AsyncSession,
+    contract_id: str,
+    user_id: str,
+    private_key: str | None = None,
+) -> Contract:
+    contract = await db.get(Contract, contract_id)
+    if not contract:
+        raise NotFoundError("Contract not found")
+    if contract.client_id != user_id:
+        raise AuthorizationError("Only the client can fund the contract")
+    if contract.status != ContractStatus.pending_funding:
+        raise ValidationError("Contract is not awaiting funding")
+    if contract.on_chain_id is None:
+        raise ValidationError("Contract has no on-chain binding")
+
+    pk = private_key or settings.client_private_key
+    if not pk:
+        raise ValidationError("No private key configured for on-chain funding")
+
+    tx_hash = fund_contract_on_chain(
+        contract_id=contract.on_chain_id,
+        amount_wei=to_wei(contract.total_amount),
+        client_private_key=pk,
+    )
+    contract.status = ContractStatus.active
     return contract
 
 
@@ -218,6 +254,7 @@ async def approve_milestone(
     contract_id: str,
     milestone_index: int,
     user_id: str,
+    private_key: str | None = None,
 ) -> dict:
     contract = await db.get(Contract, contract_id)
     if not contract:
@@ -242,8 +279,27 @@ async def approve_milestone(
     milestone.status = MilestoneStatus.approved
     milestone.approved_at = datetime.utcnow()
 
+    pk = private_key or settings.client_private_key
+    tx_hash = None
+    if pk and contract.on_chain_id is not None:
+        tx_hash = approve_milestone_on_chain(
+            contract_id=contract.on_chain_id,
+            milestone_index=milestone_index,
+            client_private_key=pk,
+        )
+
+    all_milestones = await db.execute(
+        select(ContractMilestone).where(
+            ContractMilestone.contract_id == contract_id
+        )
+    )
+    all_ms = all_milestones.scalars().all()
+    if all(m.status == MilestoneStatus.approved or m.status == MilestoneStatus.paid for m in all_ms):
+        contract.status = ContractStatus.completed
+
     return {
         "milestone": MilestoneResponse.model_validate(milestone),
+        "tx_hash": tx_hash,
     }
 
 

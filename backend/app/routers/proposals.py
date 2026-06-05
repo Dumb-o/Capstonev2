@@ -65,6 +65,27 @@ async def list_job_proposals(
     return [ProposalResponse.model_validate(p) for p in proposals_result.scalars().all()]
 
 
+@router.get("/proposals/received", response_model=list[ProposalResponse])
+async def get_received_proposals(
+    status: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    jobs_result = await db.execute(
+        select(Job.id).where(Job.client_id == current_user.id)
+    )
+    job_ids = [row[0] for row in jobs_result.all()]
+    if not job_ids:
+        return []
+
+    query = select(Proposal).where(Proposal.job_id.in_(job_ids))
+    if status:
+        query = query.where(Proposal.status == status)
+    query = query.order_by(Proposal.created_at.desc())
+    result = await db.execute(query)
+    return [ProposalResponse.model_validate(p) for p in result.scalars().all()]
+
+
 @router.get("/proposals/mine", response_model=list[ProposalResponse])
 async def get_my_proposals(
     status: str | None = Query(None),

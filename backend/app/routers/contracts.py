@@ -1,5 +1,3 @@
-import json
-
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,9 +29,7 @@ async def create_contract(
         db=db, data=data,
         client_id=current_user.id,
         client_wallet=current_user.wallet_address,
-        private_key="",  # TODO: get from secure key management
     )
-    # Since no private key yet, create off-chain first
     result = await db.execute(
         select(Contract).where(Contract.id == contract.id)
     )
@@ -72,6 +68,17 @@ async def sign_contract(
     current_user: User = Depends(get_current_user),
 ):
     contract = await contract_service.sign_contract(db, contract_id, current_user.id)
+    await db.flush()
+    return ContractResponse.model_validate(contract)
+
+
+@router.post("/{contract_id}/fund", response_model=ContractResponse)
+async def fund_contract(
+    contract_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    contract = await contract_service.fund_contract(db, contract_id, current_user.id)
     await db.flush()
     return ContractResponse.model_validate(contract)
 

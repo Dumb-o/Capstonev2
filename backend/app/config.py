@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     contract_address: str | None = None
     ipfs_api_url: str = "http://127.0.0.1:5001"
     platform_fee_bps: int = 250
+    client_private_key: str = ""
+    hardhat_account_index: int = 0
     log_level: str = "DEBUG"
 
     class Config:

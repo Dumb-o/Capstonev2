@@ -34,6 +34,7 @@ class AuthMethod(str, enum.Enum):
 class ContractStatus(str, enum.Enum):
     draft = "draft"
     pending_signatures = "pending_signatures"
+    pending_funding = "pending_funding"
     active = "active"
     completed = "completed"
     cancelled = "cancelled"
@@ -45,6 +46,7 @@ class MilestoneStatus(str, enum.Enum):
     submitted = "submitted"
     approved = "approved"
     rejected = "rejected"
+    paid = "paid"
 
 
 class DisputeStatus(str, enum.Enum):
