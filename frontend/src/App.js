@@ -10,6 +10,7 @@ import ContractDetailPage from './pages/ContractDetailPage';
 import MyContracts from './pages/MyContracts';
 import ExploreJobs from './pages/ExploreJobs';
 import JobDetail from './pages/JobDetail';
+import FreelancerDirectory from './pages/FreelancerDirectory';
 import MessagesPage from './pages/Messages';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
@@ -32,14 +33,27 @@ function ClientRoute({ children }) {
 
 function AdminRoute({ children }) {
   const { state } = useApp();
+  const isAdminMode = process.env.REACT_APP_ADMIN_MODE === 'true';
   if (state.loading) return <Loading />;
   if (!state.isAuthenticated) return <Navigate to="/login" replace />;
-  if (state.user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  if (state.user?.role !== 'admin') return <Navigate to={isAdminMode ? "/login" : "/dashboard"} replace />;
   return children;
 }
 
 function AppRoutes() {
   const { state } = useApp();
+  const isAdminMode = process.env.REACT_APP_ADMIN_MODE === 'true';
+
+  if (isAdminMode) {
+    return (
+      <Routes>
+        <Route path="/login" element={state.isAuthenticated && state.user?.role === 'admin' ? <Navigate to="/admin" replace /> : <Login />} />
+        <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+        <Route path="/" element={<Navigate to="/admin" replace />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    );
+  }
 
   return (
     <Routes>
@@ -71,6 +85,10 @@ function AppRoutes() {
       <Route
         path="/jobs"
         element={<ProtectedRoute><ExploreJobs /></ProtectedRoute>}
+      />
+      <Route
+        path="/freelancers"
+        element={<ClientRoute><FreelancerDirectory /></ClientRoute>}
       />
       <Route
         path="/messages"

@@ -1,15 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/shared/Navbar';
 import Loading from '../components/shared/Loading';
 import { useContractDetail } from '../hooks/useContracts';
 import { useApp } from '../context/AppContext';
 import { signContract, approveMilestone, rejectMilestone } from '../services/contracts';
+import api from '../services/api';
 
 export default function ContractDetailPage() {
   const { id } = useParams();
   const { contract, loading, refresh } = useContractDetail(id);
   const { state } = useApp();
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeReason, setDisputeReason] = useState('');
+  const [disputeSending, setDisputeSending] = useState(false);
+  const [disputeError, setDisputeError] = useState('');
 
   if (loading) return <Loading />;
   if (!contract) return (
@@ -63,6 +68,24 @@ export default function ContractDetailPage() {
     }
   };
 
+  const handleRaiseDispute = async () => {
+    if (!disputeReason.trim()) { setDisputeError('Please provide a reason'); return; }
+    setDisputeSending(true);
+    setDisputeError('');
+    try {
+      await api.post(`/contracts/${c.id}/disputes`, {
+        raised_by: isClient ? 'client' : 'freelancer',
+        reason: disputeReason,
+      });
+      setShowDisputeModal(false);
+      setDisputeReason('');
+      refresh();
+    } catch (err) {
+      setDisputeError(err.response?.data?.detail || 'Failed to raise dispute');
+    }
+    setDisputeSending(false);
+  };
+
   return (
     <div className="app-layout">
       <Navbar />
@@ -73,8 +96,8 @@ export default function ContractDetailPage() {
               <div>
                 <h1 className="page-title">{c.title}</h1>
                 <p className="page-sub" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span className={`status-badge status-${c.status === 'active' ? 'active' : c.status === 'pending_signatures' ? 'pending' : c.status === 'completed' ? 'completed' : c.status === 'disputed' ? 'disputed' : 'draft'}`}>
-                    {c.status}
+                  <span className={`status-badge status-${c.status === 'active' ? 'active' : c.status === 'pending_signatures' || c.status === 'pending_funding' ? 'pending' : c.status === 'completed' ? 'completed' : c.status === 'disputed' ? 'disputed' : c.status === 'delivered' ? 'active' : 'draft'}`}>
+                    {c.status.replace(/_/g, ' ')}
                   </span>
                   <span>{c.total_amount} ETH</span>
                 </p>
@@ -88,6 +111,11 @@ export default function ContractDetailPage() {
                       : 'Signed'}
                   </button>
                 )}
+                {c.status === 'active' && !dispute && (
+                  <button onClick={() => setShowDisputeModal(true)} className="btn btn-sm btn-danger">
+                    Raise Dispute
+                  </button>
+                )}
               </div>
             </div>
 
@@ -98,9 +126,14 @@ export default function ContractDetailPage() {
                   <div className="card-body">
                     <div className="detail-meta" style={{ border: 'none', padding: 0, marginBottom: 0, gridTemplateColumns: '1fr 1fr' }}>
                       <div><strong style={{ fontSize: 12, color: 'var(--text-3)' }}>Amount</strong><br /><span style={{ fontWeight: 700, fontSize: 18 }}>{c.total_amount} ETH</span></div>
-                      <div><strong style={{ fontSize: 12, color: 'var(--text-3)' }}>Status</strong><br /><span className={`badge badge-${c.status === 'active' ? 'active' : 'pending'}`}>{c.status}</span></div>
-                      <div><strong style={{ fontSize: 12, color: 'var(--text-3)' }}>Client</strong><br /><span style={{ fontSize: 13 }}>{c.client_id?.slice(0, 16)}...</span></div>
-                      <div><strong style={{ fontSize: 12, color: 'var(--text-3)' }}>Freelancer</strong><br /><span style={{ fontSize: 13 }}>{c.freelancer_id?.slice(0, 16)}...</span></div>
+                      <div><strong style={{ fontSize: 12, color: 'var(--text-3)' }}>Status</strong><br />
+                        <span className={`badge ${c.status === 'active' ? 'badge-active' : c.status === 'completed' ? 'badge-completed' : c.status === 'pending_signatures' || c.status === 'pending_funding' ? 'badge-pending' : 'badge-draft'}`}>
+                          {c.status}
+                        </span>
+                      </div>
+                      <div><strong style={{ fontSize: 12, color: 'var(--text-3)' }}>Client</strong><br /><span style={{ fontSize: 13 }}>{c.client_name || c.client_id?.slice(0, 16)}</span></div>
+                      <div><strong style={{ fontSize: 12, color: 'var(--text-3)' }}>Freelancer</strong><br /><span style={{ fontSize: 13 }}>{c.freelancer_name || c.freelancer_id?.slice(0, 16)}</span></div>
+                      {c.job_id && <div><strong style={{ fontSize: 12, color: 'var(--text-3)' }}>Job</strong><br /><Link to={`/jobs/${c.job_id}`} style={{ fontSize: 13 }}>{c.job_title || 'View Job'}</Link></div>}
                       {c.deadline && <div><strong style={{ fontSize: 12, color: 'var(--text-3)' }}>Deadline</strong><br /><span style={{ fontSize: 13 }}>{new Date(c.deadline).toLocaleDateString()}</span></div>}
                       {c.terms_cid && (
                         <div><strong style={{ fontSize: 12, color: 'var(--text-3)' }}>Terms CID</strong><br />
@@ -177,6 +210,35 @@ export default function ContractDetailPage() {
               </div>
             </div>
           </div>
+
+          {showDisputeModal && (
+            <div className="modal-overlay" onClick={() => { setShowDisputeModal(false); setDisputeError(''); }}>
+              <div className="modal" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Raise Dispute</h3>
+                  <button className="modal-close" onClick={() => { setShowDisputeModal(false); setDisputeError(''); }}>×</button>
+                </div>
+                <div className="modal-body">
+                  <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 12 }}>
+                    This will mark the contract as <strong>disputed</strong> and notify the platform admin.
+                  </p>
+                  <div className="form-group">
+                    <label className="form-label">Reason for dispute</label>
+                    <textarea className="form-input" rows={4} value={disputeReason}
+                      onChange={e => setDisputeReason(e.target.value)}
+                      placeholder="Describe the issue clearly..." />
+                  </div>
+                  {disputeError && <div className="error-message">{disputeError}</div>}
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-outline" onClick={() => { setShowDisputeModal(false); setDisputeError(''); }}>Cancel</button>
+                  <button className="btn btn-danger" onClick={handleRaiseDispute} disabled={disputeSending || !disputeReason.trim()}>
+                    {disputeSending ? 'Submitting...' : 'Submit Dispute'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

@@ -3,10 +3,24 @@ import api from './api';
 
 export async function connectWallet() {
   if (!window.ethereum) {
-    throw new Error('MetaMask is not installed');
+    throw new Error('MetaMask is not installed. Please install the MetaMask browser extension.');
+  }
+  let accounts;
+  try {
+    accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+  } catch (metaErr) {
+    if (metaErr.code === 4001) {
+      throw new Error('Connection rejected. Please approve the MetaMask connection request.');
+    }
+    if (metaErr.code === -32002) {
+      throw new Error('MetaMask is already processing a request. Please check your browser extension.');
+    }
+    throw new Error(metaErr.message || 'MetaMask connection failed');
+  }
+  if (!accounts || accounts.length === 0) {
+    throw new Error('No accounts found in MetaMask. Please unlock your wallet.');
   }
   const provider = new BrowserProvider(window.ethereum);
-  const accounts = await provider.send('eth_requestAccounts', []);
   return { address: accounts[0], provider };
 }
 

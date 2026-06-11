@@ -407,6 +407,10 @@ a:hover { color: var(--blue-dark); }
   display: flex; align-items: center; justify-content: center;
   padding: 24px; opacity: 0; pointer-events: none; transition: opacity .2s;
 }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.modal-header h3 { margin: 0; font-size: 18px; }
+.modal-body { margin-bottom: 20px; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; }
 .modal-overlay.open { opacity: 1; pointer-events: all; }
 .modal-box {
   background: var(--white); border-radius: 20px; width: 100%;
@@ -707,25 +711,6 @@ a:hover { color: var(--blue-dark); }
 .role-card .role-desc { font-size: 11.5px; color: var(--text-3); }
 .role-option input:checked + .role-card { border-color: var(--blue); background: var(--blue-pale); }
 .role-option input:checked + .role-card .role-name { color: var(--blue); }
-
-/* Demo hint */
-.demo-hint {
-  display: flex; align-items: center; gap: 10px;
-  background: #f0f9ff; border: 1px dashed #7dd3fc;
-  border-radius: 8px; padding: 10px 14px; margin-bottom: 16px;
-  cursor: pointer; transition: background .15s;
-}
-.demo-hint:hover { background: #e0f2fe; }
-.demo-label {
-  font-size: 11px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .5px; color: #0369a1; white-space: nowrap;
-  background: #bae6fd; padding: 2px 6px; border-radius: 4px;
-}
-.demo-cred {
-  font-size: 12.5px; font-family: 'DM Mono', monospace;
-  color: #0c4a6e; flex: 1;
-}
-.demo-fill { font-size: 11px; color: #0369a1; font-weight: 600; white-space: nowrap; }
 
 .form-footer-note { text-align: center; font-size: 12.5px; color: var(--text-3); margin-top: 16px; }
 .form-footer-note a { color: var(--blue); text-decoration: none; font-weight: 600; }
@@ -1043,6 +1028,8 @@ a:hover { color: var(--blue-dark); }
 }
 .admin-tab:hover { color: var(--blue); }
 .admin-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+.admin-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.admin-section-header h3 { margin-bottom: 0; }
 .admin-section h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
 
 .disputes-list { display: flex; flex-direction: column; gap: 12px; }
@@ -1159,4 +1146,89 @@ a:hover { color: var(--blue-dark); }
   .form-row { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .contract-card { padding: 16px; }
+}
+
+/* ===== Admin Panel ===== */
+.admin-panel-layout {
+  min-height: 100vh;
+  background: var(--surface);
+}
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  background: var(--navy);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.admin-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+.admin-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.admin-badge {
+  background: var(--blue);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.admin-spinner {
+  display: inline-block;
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.admin-pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 16px 0;
+}
+.admin-pagination button {
+  min-width: 32px; height: 32px; border-radius: 6px;
+  border: 1px solid var(--border); background: #fff;
+  font-size: 13px; cursor: pointer;
+}
+.admin-pagination button:hover { border-color: var(--blue); color: var(--blue); }
+.admin-pagination button.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.admin-pagination button:disabled { opacity: 0.4; cursor: default; }
+
+.admin-filter-row {
+  display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.admin-filter-row select {
+  padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;
+  font-size: 13px; background: #fff; cursor: pointer;
+}
+.admin-filter-row select:focus { outline: none; border-color: var(--blue); }
+
+.admin-error-banner {
+  background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;
+  padding: 16px 20px; margin-bottom: 16px;
+  color: #dc2626; font-size: 14px;
+  display: flex; align-items: center; gap: 10px;
 }

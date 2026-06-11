@@ -14,6 +14,7 @@ router = APIRouter(prefix="/messages", tags=["messages"])
 
 @router.get("/conversations", response_model=list[dict])
 async def get_conversations(
+    search: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -56,6 +57,11 @@ async def get_conversations(
         other_user = await db.get(User, other_id)
         if not other_user:
             continue
+
+        if search:
+            pattern = search.lower()
+            if pattern not in (other_user.username or "").lower() and pattern not in (other_user.headline or "").lower():
+                continue
 
         unread_count = await db.execute(
             select(func.count())

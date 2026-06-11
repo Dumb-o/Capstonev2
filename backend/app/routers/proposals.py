@@ -4,12 +4,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.middleware.auth import get_current_user
-from app.models.models import User, Job, Proposal
-from app.schemas.schemas import ProposalCreate, ProposalResponse
+from app.models.models import User, Job, Proposal, Message, Contract, ContractMilestone, ContractStatus
+from app.schemas.schemas import ProposalCreate, ProposalResponse, MessageResponse
 from app.utils.exceptions import NotFoundError, AuthorizationError, ValidationError
 from app.utils.helpers import pagination_params
 
 router = APIRouter(tags=["proposals"])
+
+
+async def _enrich_proposals(db: AsyncSession, proposals: list[Proposal]) -> list[ProposalResponse]:
+    if not proposals:
+        return []
+
+    job_ids = list({p.job_id for p in proposals})
+    freelancer_ids = list({p.freelancer_id for p in proposals})
+
+    jobs_result = await db.execute(select(Job.id, Job.title).where(Job.id.in_(job_ids)))
+    job_titles = {row[0]: row[1] for row in jobs_result.all()}
+
+    users_result = await db.execute(select(User.id, User.username).where(User.id.in_(freelancer_ids)))
+    usernames = {row[0]: row[1] for row in users_result.all()}
+
+    responses = []
+    for p in proposals:
+        resp = ProposalResponse.model_validate(p)
+        resp.job_title = job_titles.get(p.job_id)
+        resp.freelancer_name = usernames.get(p.freelancer_id)
+        responses.append(resp)
+    return responses
 
 
 @router.post("/jobs/{job_id}/proposals", response_model=ProposalResponse, status_code=201)
@@ -43,7 +65,17 @@ async def create_proposal(
     )
     db.add(proposal)
     await db.flush()
-    return ProposalResponse.model_validate(proposal)
+
+    msg = Message(
+        sender_id=current_user.id,
+        receiver_id=job.client_id,
+        content=f"{current_user.username or current_user.id[:8]} submitted a proposal for {job.title} — Bid: {data.bid_amount} ETH",
+    )
+    db.add(msg)
+    await db.flush()
+
+    enriched = await _enrich_proposals(db, [proposal])
+    return enriched[0]
 
 
 @router.get("/jobs/{job_id}/proposals", response_model=list[ProposalResponse])
@@ -62,7 +94,7 @@ async def list_job_proposals(
     proposals_result = await db.execute(
         select(Proposal).where(Proposal.job_id == job_id).order_by(Proposal.created_at.desc())
     )
-    return [ProposalResponse.model_validate(p) for p in proposals_result.scalars().all()]
+    return await _enrich_proposals(db, proposals_result.scalars().all())
 
 
 @router.get("/proposals/received", response_model=list[ProposalResponse])
@@ -83,7 +115,7 @@ async def get_received_proposals(
         query = query.where(Proposal.status == status)
     query = query.order_by(Proposal.created_at.desc())
     result = await db.execute(query)
-    return [ProposalResponse.model_validate(p) for p in result.scalars().all()]
+    return await _enrich_proposals(db, result.scalars().all())
 
 
 @router.get("/proposals/mine", response_model=list[ProposalResponse])
@@ -101,7 +133,7 @@ async def get_my_proposals(
     offset, limit = pagination_params(page, limit)
     query = query.offset(offset).limit(limit)
     result = await db.execute(query)
-    return [ProposalResponse.model_validate(p) for p in result.scalars().all()]
+    return await _enrich_proposals(db, result.scalars().all())
 
 
 @router.put("/proposals/{proposal_id}", response_model=ProposalResponse)
@@ -130,5 +162,28 @@ async def update_proposal_status(
     if new_status == "accepted":
         job.status = "in_progress"
 
+        contract = Contract(
+            job_id=proposal.job_id,
+            client_id=job.client_id,
+            freelancer_id=proposal.freelancer_id,
+            title=job.title,
+            description=job.description,
+            total_amount=proposal.bid_amount,
+            status=ContractStatus.pending_signatures,
+        )
+        db.add(contract)
+        await db.flush()
+
+        milestone = ContractMilestone(
+            contract_id=contract.id,
+            index=0,
+            description="Full project delivery",
+            amount=proposal.bid_amount,
+        )
+        db.add(milestone)
+
+        proposal.contract_id = contract.id
+
     await db.flush()
-    return ProposalResponse.model_validate(proposal)
+    enriched = await _enrich_proposals(db, [proposal])
+    return enriched[0]

@@ -6,10 +6,10 @@ Extracted from Proposal (Table 3: Project Objectives) and API spec.
 
 ## FR-1: Decentralized Storage Layer
 - **Description**: Implement IPFS (via Kubo) for immutable, censorship-resistant content storage
-- **Status**: ⚠️ **Partially Implemented**
-- **Backend**: `ipfs_service.py` exists (upload, download, pin) but needs end-to-end verification
+- **Status**: ✅ **Fully Implemented**
+- **Backend**: `ipfs_service.py` — upload, download, pin verified end-to-end
 - **Frontend**: `ipfs.js` service exists, `uploadFile` wired
-- **Remaining**: Verify IPFS connectivity in Docker, ensure file uploads actually reach Kubo node
+- **Verification**: Test upload returned CID `QmXrxQa6KwxnqCyLDoF6XENB46jhbos41HHZcoNNCccUX9`, download confirmed content matches
 
 ---
 
@@ -130,10 +130,9 @@ Extracted from Proposal (Table 3: Project Objectives) and API spec.
 
 ## FR-17: IPFS File Upload/Download
 - **Description**: Upload deliverables to IPFS via backend, download by CID
-- **Status**: ⚠️ **Partially Implemented**
-- `POST /api/ipfs/upload`, `GET /api/ipfs/download/{cid}` exist
-- Frontend has `uploadFile` function
-- **Remaining**: Verify actual IPFS connectivity end-to-end
+- **Status**: ✅ **Fully Implemented**
+- `POST /api/ipfs/upload`, `GET /api/ipfs/download/{cid}` — verified end-to-end
+- Frontend `uploadFile` wired and functional
 
 ---
 

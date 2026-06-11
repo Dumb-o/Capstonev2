@@ -8,7 +8,7 @@ echo "============================================"
 echo ""
 
 # ── 1. Prerequisites check ──────────────────────
-echo "[1/6] Checking prerequisites..."
+echo "[1/7] Checking prerequisites..."
 
 command -v docker >/dev/null 2>&1 || { echo "ERROR: docker is required. Install Docker first."; exit 1; }
 command -v node  >/dev/null 2>&1 || { echo "ERROR: Node.js is required (v18+)."; exit 1; }
@@ -22,7 +22,7 @@ echo "  python3 ✓ ($(python3 --version))"
 echo ""
 
 # ── 2. Backend environment ──────────────────────
-echo "[2/6] Setting up backend environment..."
+echo "[2/7] Setting up backend environment..."
 
 cd "$ROOT/backend"
 if [ ! -f ".env" ]; then
@@ -42,7 +42,7 @@ deactivate
 echo ""
 
 # ── 3. Frontend dependencies ────────────────────
-echo "[3/6] Installing frontend dependencies..."
+echo "[3/7] Installing frontend dependencies..."
 
 cd "$ROOT/frontend"
 npm install --silent
@@ -50,7 +50,7 @@ echo "  Node dependencies installed"
 echo ""
 
 # ── 4. Start infrastructure (Docker) ────────────
-echo "[4/6] Starting infrastructure (PostgreSQL, Redis, IPFS, Hardhat)..."
+echo "[4/7] Starting infrastructure (PostgreSQL, Redis, IPFS, Hardhat)..."
 
 cd "$ROOT/docker"
 docker compose up -d --wait 2>/dev/null || docker compose up -d
@@ -58,7 +58,7 @@ echo "  Infrastructure containers started"
 echo ""
 
 # ── 5. Run database migrations ──────────────────
-echo "[5/6] Running database migrations..."
+echo "[5/7] Running database migrations..."
 
 cd "$ROOT/backend"
 source venv/bin/activate
@@ -67,14 +67,47 @@ deactivate
 echo "  Migrations applied"
 echo ""
 
-# ── 6. Done ─────────────────────────────────────
+# ── 6. Build frontend ───────────────────────────
+echo "[6/7] Building frontend (for single-server mode)..."
+cd "$ROOT/frontend"
+npx react-scripts build 2>/dev/null || npm run build 2>/dev/null || CI=false npm run build
+echo "  Frontend built (served by backend on port 3001)"
+echo ""
+
+# ── 7. Start project servers ────────────────────
+echo "[7/7] Starting project servers..."
+
+mkdir -p "$ROOT/logs"
+
+# Start backend (serves API + built frontend on port 3001)
+cd "$ROOT/backend"
+source venv/bin/activate
+PYTHONPATH="$ROOT/backend" nohup uvicorn app.main:app --host 0.0.0.0 --port 3001 --reload \
+  > "$ROOT/logs/backend.log" 2>&1 &
+BACKEND_PID=$!
+deactivate
+echo "  Backend started (PID: $BACKEND_PID) → http://localhost:3001"
+
+# Start frontend dev server (hot-reload on port 3000)
+cd "$ROOT/frontend"
+nohup npm start > "$ROOT/logs/frontend.log" 2>&1 &
+FRONTEND_PID=$!
+echo "  Frontend started (PID: $FRONTEND_PID) → http://localhost:3000"
+
+sleep 2
+echo ""
+
+# ── Done ────────────────────────────────────────
 echo "============================================"
-echo "  Setup complete!"
+echo "  FreeLedger is running!"
 echo ""
-echo "  Start the project with:"
+echo "  Single-server (API + UI):  http://localhost:3001"
+echo "  Frontend dev server:       http://localhost:3000"
+echo "  API docs (Swagger):        http://localhost:3001/docs"
 echo ""
-echo "    Terminal 1 (backend):  cd backend && source venv/bin/activate && uvicorn app.main:app --reload --port 8000"
-echo "    Terminal 2 (frontend): cd frontend && npm start"
+echo "  Logs:"
+echo "    Backend:  logs/backend.log"
+echo "    Frontend: logs/frontend.log"
 echo ""
-echo "  Open:  http://localhost:3000"
+echo "  To stop:  kill $BACKEND_PID $FRONTEND_PID"
 echo "============================================"

@@ -6,7 +6,8 @@ export default function Navbar() {
   const { state, logout } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const isLanding = location.pathname === '/';
+  const isAdminMode = process.env.REACT_APP_ADMIN_MODE === 'true';
+  const isLanding = !isAdminMode && location.pathname === '/';
 
   const handleLogout = async () => {
     await logout();
@@ -45,6 +46,7 @@ export default function Navbar() {
         <div className="dash-links">
           <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Dashboard</Link>
           {isClient && <Link to="/create-contract" className={location.pathname === '/create-contract' ? 'active' : ''}>Post a Job</Link>}
+          {isClient && <Link to="/freelancers" className={location.pathname === '/freelancers' ? 'active' : ''}>Browse Freelancers</Link>}
           <Link to="/jobs" className={location.pathname.startsWith('/jobs') ? 'active' : ''}>{isClient ? 'Explore Jobs' : 'Find Jobs'}</Link>
           <Link to="/contracts" className={location.pathname.startsWith('/contracts') ? 'active' : ''}>Contracts</Link>
           <Link to="/messages" className={location.pathname === '/messages' ? 'active' : ''}>Messages</Link>

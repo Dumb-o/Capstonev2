@@ -38,7 +38,7 @@ Extracted from Proposal, Sprint Plans, and Architecture docs.
 - **Description**: Off-chain PostgreSQL for low-latency operations; on-chain only for trust-sensitive actions
 - **Status**: ✅ **Architecture Implemented**
 - Read/search operations go through PostgreSQL; only escrow/payment logic on-chain
-- **Remaining**: On-chain calls are not fully wired, so scalability benefit not realized
+- On-chain calls fully wired via `CLIENT_PRIVATE_KEY` env var (June 4 session)
 
 ---
 
@@ -59,7 +59,7 @@ Extracted from Proposal, Sprint Plans, and Architecture docs.
 ## NFR-8: Reliability — Automated Testing
 - **Description**: Unit + integration tests for all components
 - **Status**: ⚠️ **Partially Implemented**
-- **Smart Contract**: 22 tests (comprehensive)
+- **Smart Contract**: 24 tests (comprehensive)
 - **Backend**: 6 tests (auth + IPFS stubs only)
 - **Frontend**: ❌ 0 tests
 - **Integration**: ❌ 0 tests

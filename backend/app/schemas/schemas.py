@@ -34,6 +34,11 @@ class UserUpdate(BaseModel):
     skills: Optional[list[str]] = None
     hourly_rate: Optional[float] = None
     avatar_cid: Optional[str] = None
+    headline: Optional[str] = None
+    experience_level: Optional[str] = None
+    industries: Optional[list[str]] = None
+    is_available: Optional[bool] = None
+    portfolio_cids: Optional[list[str]] = None
 
 
 class EmailRegisterRequest(BaseModel):
@@ -60,6 +65,12 @@ class UserResponse(BaseModel):
     hourly_rate: float = 0.0
     rating: float = 0.0
     avatar_cid: Optional[str] = None
+    headline: Optional[str] = None
+    experience_level: str = "mid"
+    industries: list[str] = []
+    is_available: bool = True
+    portfolio_cids: list[str] = []
+    is_active: bool = True
     created_at: datetime
 
     class Config:
@@ -115,10 +126,13 @@ class ProposalResponse(BaseModel):
     id: str
     job_id: str
     freelancer_id: str
+    job_title: Optional[str] = None
+    freelancer_name: Optional[str] = None
     cover_letter: Optional[str] = None
     bid_amount: float
     estimated_days: Optional[int] = None
     status: str
+    contract_id: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -146,6 +160,9 @@ class ContractResponse(BaseModel):
     job_id: Optional[str] = None
     client_id: str
     freelancer_id: str
+    client_name: Optional[str] = None
+    freelancer_name: Optional[str] = None
+    job_title: Optional[str] = None
     title: str
     description: Optional[str] = None
     total_amount: float
@@ -249,6 +266,18 @@ class IPFSUploadResponse(BaseModel):
     mime_type: str
 
 
+class JobRecommendation(BaseModel):
+    job: JobResponse
+    match_score: float
+    match_reasons: list[str]
+
+
+class FreelancerRecommendation(BaseModel):
+    freelancer: UserResponse
+    match_score: float
+    match_reasons: list[str]
+
+
 class PaginatedContracts(BaseModel):
     contracts: list[ContractResponse]
     total: int
@@ -265,11 +294,53 @@ class PaginatedDisputes(BaseModel):
 
 class AdminStats(BaseModel):
     total_users: int
+    total_jobs: int
+    total_proposals: int
     total_contracts: int
     total_volume_eth: float
     active_disputes: int
     platform_fees_accumulated: float
+    role_counts: dict[str, int] = {}
 
+
+class AdminUserCreate(BaseModel):
+    email: str = Field(..., pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+    password: str = Field(..., min_length=6)
+    username: Optional[str] = None
+    role: str = "freelancer"
+    hourly_rate: float = 0.0
+
+class AdminJobCreate(BaseModel):
+    client_id: str
+    title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
+    budget: float = Field(..., gt=0)
+    category: Optional[str] = None
+    skills: list[str] = []
+    duration_days: Optional[int] = Field(None, gt=0)
+    status: Optional[str] = "open"
+
+class AdminProposalCreate(BaseModel):
+    job_id: str
+    freelancer_id: str
+    cover_letter: Optional[str] = None
+    bid_amount: float = Field(..., gt=0)
+    estimated_days: Optional[int] = Field(None, gt=0)
+
+class AdminContractCreate(BaseModel):
+    job_id: Optional[str] = None
+    client_id: str
+    freelancer_id: str
+    title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
+    total_amount: float = Field(..., gt=0)
+    deadline: Optional[datetime] = None
+    status: Optional[str] = "pending_signatures"
+
+class AdminDisputeCreate(BaseModel):
+    contract_id: str
+    raised_by: str = Field(..., pattern="^(client|freelancer)$")
+    reason: str = Field(..., min_length=1)
 
 class PaginatedUsers(BaseModel):
     users: list[UserResponse]

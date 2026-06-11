@@ -26,6 +26,13 @@ class UserRole(str, enum.Enum):
     admin = "admin"
 
 
+class ExperienceLevel(str, enum.Enum):
+    junior = "junior"
+    mid = "mid"
+    senior = "senior"
+    lead = "lead"
+
+
 class AuthMethod(str, enum.Enum):
     wallet = "wallet"
     email = "email"
@@ -33,9 +40,12 @@ class AuthMethod(str, enum.Enum):
 
 class ContractStatus(str, enum.Enum):
     draft = "draft"
+    pending_review = "pending_review"
     pending_signatures = "pending_signatures"
     pending_funding = "pending_funding"
     active = "active"
+    delivered = "delivered"
+    revision_requested = "revision_requested"
     completed = "completed"
     cancelled = "cancelled"
     disputed = "disputed"
@@ -75,6 +85,11 @@ class User(Base):
     hourly_rate = Column(Float, default=0.0)
     rating = Column(Float, default=0.0)
     avatar_cid = Column(String, nullable=True)
+    headline = Column(String(200), nullable=True)
+    experience_level = Column(String(20), default=ExperienceLevel.mid.value)
+    industries = Column(JSON, default=list)
+    is_available = Column(Boolean, default=True)
+    portfolio_cids = Column(JSON, default=list)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -114,6 +129,7 @@ class Proposal(Base):
     bid_amount = Column(Float, nullable=False)
     estimated_days = Column(Integer, nullable=True)
     status = Column(String(20), default="pending", index=True)
+    contract_id = Column(String, ForeignKey("contracts.id"), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     job = relationship("Job", back_populates="proposals")

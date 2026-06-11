@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from app.config import settings
 from app.database import init_db
 from app.redis_client import init_redis, close_redis
-from app.routers import auth, users, jobs, proposals, contracts, disputes, messages, ipfs, admin
+from app.routers import auth, users, jobs, proposals, contracts, disputes, messages, ipfs, admin, recommendations
 from app.services.event_listener import start_event_listener
 
 FRONTEND_BUILD = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "build")
@@ -49,6 +49,7 @@ app.include_router(disputes.router, prefix="/api")
 app.include_router(ipfs.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(messages.router, prefix="/api")
+app.include_router(recommendations.router, prefix="/api")
 
 
 @app.get("/api/health")

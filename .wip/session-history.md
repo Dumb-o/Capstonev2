@@ -302,3 +302,55 @@ Initial analysis revealed the project had a solid skeleton (all routes, all page
 | Env-agnostic config (NFR-11) | Low |
 | CORS hardening (NFR-10) | Low |
 | Performance benchmarks (FR-6) | Low |
+
+---
+## Session 4 — June 11, 2026: Admin Panel Enhancement & Document Updates
+
+### What Was Implemented
+
+#### Document Updates
+1. **README.md** — Fixed merge conflict markers (`<<<<<<< HEAD` / `>>>>>>> f912268`), synced port table with `PORTS.txt`
+2. **`.wip/admin-roadmap.md`** — Marked B1 (is_active schema) and B3 (AdminStats fields) as ✅ RESOLVED; updated status to ~70% functional; re-prioritized remaining items
+3. **`.wip/functional-requirements.md`** — Updated FR-1 (IPFS) and FR-17 (IPFS Upload/Download) from ⚠️ Partially to ✅ Fully Implemented
+4. **`.wip/non-functional-requirements.md`** — Corrected test counts (22→24 contract tests), updated NFR-5 (on-chain calls fully wired)
+5. **`.wip/gap-analysis.md`** — Added 9 newly resolved gaps to Resolved table
+6. **`.wip/session-history.md`** — Added this session
+
+#### Backend Changes (`backend/app/routers/admin.py`)
+
+| Change | Detail |
+|---|---|
+| **Stats: role_counts** | Added per-role user counts (admin/client/freelancer) to `GET /api/admin/stats` response |
+| **Server-side search** | Added `?search=` query param to `GET /admin/contracts`, `/admin/proposals`, `/admin/disputes` — searches title/description, cover_letter, reason respectively |
+| **Disputes creation** | Added `POST /admin/disputes` endpoint — admin can create disputes on behalf of users |
+| **Message deletion** | Added `DELETE /admin/messages/{message_id}` endpoint |
+| **Pagination bugfix** | Fixed `offset(page_limit)` → `offset(page_offset)` in proposals endpoint |
+
+#### Schema Changes (`backend/app/schemas/schemas.py`)
+| Change | Detail |
+|---|---|
+| `AdminStats.role_counts` | Added `role_counts: dict[str, int] = {}` field |
+| `AdminDisputeCreate` | Added schema for admin dispute creation |
+
+#### Frontend Changes (`frontend/src/pages/AdminPanel.js`)
+
+| Change | Detail |
+|---|---|
+| **Role Distribution** | Now reads from `stats.role_counts` API data instead of client-side `users` array (fixes B2/E1) |
+| **Smart edit modal** | Field-type-aware rendering: `select` for enums (role, status, decision), `textarea` for long text (bio, description, cover_letter), `number` for amounts (budget, rate, bid), plain text for short fields |
+| **Confirmation dialogs** | All quick-action buttons (Close/Reopen/Complete/Cancel) now show confirmation modal before executing |
+| **Messages delete** | Added "Del" button to each message entry (calls `DELETE /admin/messages/{id}`) |
+| **Contract filter** | Added missing statuses: `draft`, `pending_review`, `revision_requested`, `pending` |
+
+#### Files Modified
+| File | Action |
+|---|---|
+| `README.md` | Fixed merge conflict, updated port table |
+| `.wip/admin-roadmap.md` | Updated status, marked resolved items |
+| `.wip/functional-requirements.md` | Updated IPFS status |
+| `.wip/non-functional-requirements.md` | Updated test counts |
+| `.wip/gap-analysis.md` | Added resolved gaps |
+| `.wip/session-history.md` | Added this session |
+| `backend/app/schemas/schemas.py` | Added `role_counts` to `AdminStats`, added `AdminDisputeCreate` |
+| `backend/app/routers/admin.py` | Added search params, POST /admin/disputes, DELETE /admin/messages, role_counts, pagination fix |
+| `frontend/src/pages/AdminPanel.js` | Smart edit modal, confirmation dialogs, message delete, contract filters, role distribution

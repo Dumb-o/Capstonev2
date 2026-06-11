@@ -19,6 +19,7 @@ PORT ASSIGNMENTS
 | Backend API           | 8000  | HTTP      | FastAPI server (main)          |
 | Backend Docs          | 8001  | HTTP      | FastAPI Swagger UI             |
 | Frontend Dev          | 3000  | HTTP      | React development server      |
+| Admin Frontend Dev    | 3001  | HTTP      | React admin panel (admin mode)|
 | Hardhat/Local Node    | 8545  | HTTP      | Ethereum local network RPC    |
 | Hardhat/WS            | 8546  | WebSocket | Ethereum local network WS     |
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/shared/Navbar';
 import Loading from '../components/shared/Loading';
+import { useApp } from '../context/AppContext';
+import ProposalForm from '../components/proposals/ProposalForm';
 import api from '../services/api';
 
 const catColors = {
@@ -18,8 +20,17 @@ const catColors = {
 export default function JobDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { state } = useApp();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [alreadyApplied, setAlreadyApplied] = useState(false);
+
+  const user = state.user;
+  const isFreelancer = user?.role === 'freelancer';
+  const isOwner = job && user && job.client_id === user.id;
+  const canApply = isFreelancer && !isOwner && !alreadyApplied;
 
   useEffect(() => {
     async function load() {
@@ -33,6 +44,15 @@ export default function JobDetail() {
     }
     load();
   }, [id, navigate]);
+
+  const handleProposalResult = (result) => {
+    setShowForm(false);
+    if (result === 'submitted') {
+      setSubmitted(true);
+    } else if (result === 'already_applied') {
+      setAlreadyApplied(true);
+    }
+  };
 
   return (
     <div className="app-layout">
@@ -121,12 +141,45 @@ export default function JobDetail() {
                       </div>
                     </div>
 
-                    <div className="hire-card">
-                      <div className="hc-icon" style={{ fontSize: 22, marginBottom: 8 }}>💼</div>
-                      <h4>Interested in this job?</h4>
-                      <p>Submit a proposal to start working on this project.</p>
-                      <button className="btn-hire">Apply Now</button>
-                    </div>
+                    {submitted ? (
+                      <div className="card" style={{ border: '2px solid var(--green)', background: '#f0fdf4' }}>
+                        <div className="card-body" style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
+                          <h4 style={{ marginBottom: 4 }}>Proposal Submitted!</h4>
+                          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>The client will review your proposal. Check your dashboard for updates.</p>
+                          <Link to="/dashboard" className="btn btn-primary btn-sm" style={{ marginTop: 12 }}>
+                            Go to Dashboard
+                          </Link>
+                        </div>
+                      </div>
+                    ) : isOwner ? (
+                      <div className="card" style={{ background: 'var(--surface)' }}>
+                        <div className="card-body" style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
+                          <h4 style={{ marginBottom: 4 }}>Your Job Posting</h4>
+                          <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 12 }}>This is your job listing. Track proposals from your dashboard.</p>
+                          <Link to="/dashboard" className="btn btn-outline btn-sm">View Proposals</Link>
+                        </div>
+                      </div>
+                    ) : alreadyApplied ? (
+                      <div className="card" style={{ border: '2px solid var(--amber)' }}>
+                        <div className="card-body" style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: 28, marginBottom: 8 }}>📨</div>
+                          <h4 style={{ marginBottom: 4 }}>Already Applied</h4>
+                          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>You've already submitted a proposal for this job. Check your dashboard for the status.</p>
+                          <Link to="/dashboard" className="btn btn-outline btn-sm" style={{ marginTop: 12 }}>
+                            My Proposals
+                          </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="hire-card">
+                        <div className="hc-icon" style={{ fontSize: 22, marginBottom: 8 }}>💼</div>
+                        <h4>Interested in this job?</h4>
+                        <p>Submit a proposal to start working on this project.</p>
+                        <button className="btn-hire" onClick={() => setShowForm(true)}>Apply Now</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -134,6 +187,15 @@ export default function JobDetail() {
           </div>
         </main>
       </div>
+
+      {showForm && (
+        <ProposalForm
+          jobId={id}
+          jobTitle={job?.title}
+          onClose={() => setShowForm(false)}
+          onSuccess={handleProposalResult}
+        />
+      )}
     </div>
   );
 }

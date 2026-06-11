@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # FreeLedger — A Decentralized Freelance Protocol with Web3 Integration
 
 Hybrid Web3 freelancing platform connecting clients and freelancers via Ethereum smart contracts, IPFS decentralized storage, and MetaMask wallet authentication.
@@ -79,15 +78,17 @@ npm start
 
 ### Ports
 
-| Service | Port |
-|---|---|
-| Frontend | 3000 |
-| Backend API | 8000 |
-| PostgreSQL | 5432 |
-| Redis | 6379 |
-| IPFS API | 5001 |
-| IPFS Gateway | 8080 |
-| Hardhat Node | 8545 |
+| Service | Port | Protocol |
+|---|---|---|
+| PostgreSQL | 5432 | TCP |
+| Redis | 6379 | TCP |
+| IPFS API | 5001 | HTTP |
+| IPFS Gateway | 8080 | HTTP |
+| Backend API | 3001 | HTTP |
+| Backend Docs | 8001 | HTTP |
+| Frontend Dev | 3000 | HTTP |
+| Hardhat Node | 8545 | HTTP |
+| Hardhat WS | 8546 | WebSocket |
 
 ## Sprint Plan
 
@@ -100,4 +101,3 @@ Once running, visit `http://localhost:8000/docs` for auto-generated OpenAPI docs
 ## License
 
 Academic project — Taylors University, Malaysia
->>>>>>> f912268 (I wish you guys luck)

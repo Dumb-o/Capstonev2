@@ -26,7 +26,8 @@ export function useAuth() {
       dispatch({ type: 'SET_USER', payload: user });
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Authentication failed');
+      const msg = err.response?.data?.detail || err.message || 'Authentication failed';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,8 @@ export function useAuth() {
     try {
       const user = await emailLogin(email, password);
       dispatch({ type: 'SET_USER', payload: user });
-      navigate('/dashboard');
+      const isAdminMode = process.env.REACT_APP_ADMIN_MODE === 'true';
+      navigate(isAdminMode ? '/admin' : '/dashboard');
     } catch (err) {
       const msg = err.response?.data?.detail || err.message || 'Login failed';
       setError(msg);
