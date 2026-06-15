@@ -1,0 +1,45 @@
+@startuml
+skinparam activity {
+    DiamondBackgroundColor white
+    DiamondBorderColor #333333
+    DiamondFontSize 11
+    BarColor #333333
+    StartColor #333333
+    EndColor #333333
+    BackgroundColor #FAFAFA
+    ArrowColor #333333
+}
+
+skinparam roundcorner 8
+skinparam arrowsize 10
+
+start
+:Client Fills\nContract Details;
+
+fork
+    :Upload to IPFS\nterms CID;
+fork again
+    :Prepare On-chain Data;
+end fork
+
+:Store Metadata in DB\npseudonym IDs;
+
+:Deploy Smart Contract\nstore CID on-chain;
+
+:Status = PENDING;
+
+fork
+    :Client Signs\nMetaMask;
+fork again
+    :Freelancer Signs\nMetaMask;
+end fork
+
+if (Both Signed?) then (Yes)
+    :Status = ACTIVE;
+    :Client Deposits\nETH to Escrow;
+    stop
+else (No)
+    :Wait for Other Party;
+endif
+
+@enduml

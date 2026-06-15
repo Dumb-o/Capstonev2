@@ -1,0 +1,93 @@
+@startuml Entities
+!theme plain
+skinparam linetype ortho
+skinparam nodesep 40
+skinparam ranksep 60
+
+title Entities
+
+class User {
+    - id: UUID
+    - pseudonymousId: String
+    - displayName: String
+    - role: UserRole
+    - createdAt: DateTime
+    - updatedAt: DateTime
+}
+
+class Session {
+    - sessionId: String
+    - wallet: String
+    - role: UserRole
+    - userPseudonym: String
+    - expiresAt: DateTime
+    - createdAt: DateTime
+}
+
+class Contract {
+    - id: UUID
+    - pseudonymousId: String
+    - termsCID: String
+    - clientPseudonym: String
+    - freelancerPseudonym: String
+    - totalValue: Decimal
+    - status: ContractStatus
+    - onChainId: bytes32
+    - txHash: String
+    - createdAt: DateTime
+    - signedAt: DateTime
+}
+
+class Milestone {
+    - id: UUID
+    - contractId: UUID
+    - milestoneIndex: Integer
+    - deliverableCID: String
+    - amount: Decimal
+    - deadline: DateTime
+    - status: MilestoneStatus
+    - submittedAt: DateTime
+    - approvedAt: DateTime
+    - paidAt: DateTime
+}
+
+class Deliverable {
+    - id: UUID
+    - milestoneId: UUID
+    - deliverableCID: String
+    - submittedAt: DateTime
+    - approvedAt: DateTime
+    - notes: String
+}
+
+class Dispute {
+    - id: UUID
+    - contractId: UUID
+    - raisedByPseudonym: String
+    - reason: String
+    - description: String
+    - status: DisputeStatus
+    - decision: DisputeDecision
+    - txHash: String
+    - resolvedAt: DateTime
+}
+
+class Signature {
+    - id: UUID
+    - contractId: UUID
+    - role: UserRole
+    - signatureHash: String
+    - signedAt: DateTime
+}
+
+User "1" --> "*" Contract : creates
+User "1" --> "*" Contract : signs
+User "1" --> "*" Session : has
+Contract "1" --> "*" Milestone : has
+Contract "1" --> "*" Dispute : has
+Contract "1" --> "*" Signature : has
+Contract --> User : client
+Contract --> User : freelancer
+Milestone "1" --> "0..1" Deliverable : has
+
+@enduml

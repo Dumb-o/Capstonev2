@@ -1,0 +1,184 @@
+/* ── Page Header ─────────────────────────────────────────────────────────── */
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-title { font-size: 24px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 4px; }
+.page-sub   { font-size: 14px; color: var(--text-2); }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+
+/* ── Contract Tabs ───────────────────────────────────────────────────────── */
+.contract-tabs {
+  display: flex; gap: 4px; background: var(--white);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 5px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.ctab {
+  padding: 8px 16px; border: none; border-radius: 7px; font-family: inherit;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--text-2); background: transparent; transition: all .15s;
+  white-space: nowrap;
+}
+.ctab:hover  { background: var(--blue-pale); color: var(--blue); }
+.ctab.active { background: var(--blue); color: #fff; }
+
+/* ── Contract Card ───────────────────────────────────────────────────────── */
+.contract-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 22px;
+  box-shadow: var(--shadow); margin-bottom: 14px;
+  cursor: pointer; transition: all .2s ease;
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 16px; align-items: start;
+}
+.contract-card:hover { border-color: #bfdbfe; box-shadow: var(--shadow-lg); }
+
+.contract-main {}
+.contract-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.contract-title  { font-size: 16px; font-weight: 700; }
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+  text-transform: uppercase; white-space: nowrap;
+}
+.status-active    { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+.status-pending   { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.status-draft     { background: var(--surface); color: var(--text-3); border: 1px solid var(--border); }
+.status-completed { background: #eff6ff; color: var(--blue); border: 1px solid #bfdbfe; }
+.status-disputed  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+.contract-meta {
+  display: flex; align-items: center; gap: 20px;
+  font-size: 12px; color: var(--text-3); margin-bottom: 14px; flex-wrap: wrap;
+}
+.contract-meta-item { display: flex; align-items: center; gap: 5px; }
+
+/* Milestone progress */
+.milestones { display: flex; flex-direction: column; gap: 8px; }
+.milestone-row { display: flex; align-items: center; gap: 10px; }
+.ms-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.ms-done    { background: var(--green); }
+.ms-active  { background: var(--blue); }
+.ms-pending { background: var(--border); }
+.ms-label { font-size: 12px; color: var(--text-2); flex: 1; }
+.ms-amount { font-size: 12px; font-weight: 700; color: var(--text); }
+
+/* Right panel */
+.contract-right { text-align: right; }
+.contract-value { font-size: 22px; font-weight: 800; color: var(--blue); }
+.contract-value-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.contract-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+
+/* Progress bar */
+.contract-progress { margin-top: 14px; }
+.cp-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-3); margin-bottom: 5px; }
+.cp-bar { height: 5px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+.cp-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--blue-light)); border-radius: 3px; transition: width .6s ease; }
+
+/* Freelancer info */
+.contract-freelancer {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; margin-top: 12px;
+}
+.cf-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+}
+.cf-info .cf-name { font-size: 13px; font-weight: 700; }
+.cf-info .cf-role { font-size: 11px; color: var(--text-3); }
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(15,23,42,.45); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; opacity: 0; pointer-events: none;
+  transition: opacity .2s ease;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--white); border-radius: 20px;
+  width: 100%; max-width: 600px; max-height: 90vh;
+  overflow-y: auto; padding: 32px; position: relative;
+  box-shadow: 0 24px 64px rgba(0,0,0,.2);
+  transform: translateY(16px); transition: transform .25s ease;
+}
+.modal-overlay.open .modal-box { transform: translateY(0); }
+.modal-box-wide { max-width: 720px; }
+.modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; color: var(--text-2); transition: all .15s;
+}
+.modal-close:hover { background: var(--border); }
+
+/* Milestone timeline in modal */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline-item {
+  display: flex; gap: 16px; position: relative;
+  padding-bottom: 20px;
+}
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item:not(:last-child)::before {
+  content: ''; position: absolute; left: 14px; top: 30px;
+  width: 2px; bottom: 0;
+  background: var(--border);
+}
+.tl-icon {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; z-index: 1;
+}
+.tl-done    { background: #ecfdf5; border: 2px solid var(--green); color: var(--green); }
+.tl-active  { background: var(--blue-pale); border: 2px solid var(--blue); color: var(--blue); }
+.tl-pending { background: var(--surface); border: 2px solid var(--border); color: var(--text-3); }
+.tl-body { flex: 1; }
+.tl-title   { font-size: 14px; font-weight: 700; }
+.tl-amount  { font-size: 13px; font-weight: 700; color: var(--blue); margin-top: 2px; }
+.tl-status  { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+/* Escrow box */
+.escrow-box {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border-radius: 12px; padding: 20px; color: #fff; margin: 20px 0;
+}
+.escrow-box h4 { font-size: 13px; color: rgba(255,255,255,.5); margin-bottom: 4px; font-weight: 600; }
+.escrow-amount { font-size: 28px; font-weight: 800; color: #60a5fa; }
+.escrow-sub    { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 2px; }
+
+/* Form elements */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.form-input {
+  width: 100%; padding: 10px 14px; border-radius: 8px;
+  border: 1.5px solid var(--border); font-family: inherit;
+  font-size: 14px; color: var(--text); outline: none;
+  transition: border-color .15s; background: var(--white);
+}
+.form-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 80px 24px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.empty-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.empty-state p  { font-size: 14px; color: var(--text-2); margin-bottom: 20px; }
+
+@media (max-width: 768px) {
+  .contract-card { grid-template-columns: 1fr; }
+  .contract-right { text-align: left; }
+  .contract-actions { flex-direction: row; }
+  .form-row { grid-template-columns: 1fr; }
+}

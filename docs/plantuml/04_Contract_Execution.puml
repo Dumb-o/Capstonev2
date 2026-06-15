@@ -1,0 +1,98 @@
+@startuml Contract_Execution
+!theme plain
+hide footbox
+
+title Contract Execution (Milestone Submission & Payment Release)
+
+actor "Freelancer" as Freelancer
+actor "Client" as Client
+participant "Frontend" as FE
+participant "Backend API" as API
+participant "IPFS (Kubo)" as IPFS
+participant "PostgreSQL" as DB
+participant "Smart Contract" as SC
+participant "Ethereum" as ETH
+
+== Milestone Submission ==
+
+Freelancer -> FE : Submit deliverable\n(files for milestone)
+FE -> FE : Prepare deliverable package
+
+FE -> IPFS : Upload deliverable files\nipfs.add(file)
+activate IPFS
+IPFS -->> FE : Return deliverableCID\n"QmDeliverable123..."
+deactivate IPFS
+
+FE -> FE : Prepare submit data\n{contractId, milestoneIndex, deliverableCID}
+
+FE -> API : POST /api/contracts/:id/milestone/:idx/submit\n{deliverableCID, freelancerSignature}
+activate API
+
+API -> API : verifySignature(freelancerSignature)
+
+API -> DB : Store deliverable reference\ndeliverable_cid = deliverableCID
+activate DB
+DB -->> API : Confirm
+deactivate DB
+
+API -->> FE : Return success + CID
+deactivate API
+
+FE -> Freelancer : Show "Deliverable Submitted"
+
+== Client Approval & Payment ==
+
+Client -> FE : View submitted deliverable
+FE -> API : GET /api/contracts/:id/milestone/:idx
+activate API
+API -> IPFS : Fetch deliverable metadata\nipfs.cat(deliverableCID)
+activate IPFS
+IPFS -->> API : Return deliverable info
+deactivate IPFS
+API -->> FE : Display deliverable
+deactivate API
+
+Client -> FE : Click "Approve & Release Payment"
+FE -> FE : Prepare approval data
+
+FE -> Client : Prompt MetaMask transaction\napproveMilestone(contractId, milestoneIndex)
+Client -> FE : Approve transaction
+
+FE -> SC : Call approveMilestone()
+activate SC
+
+note over SC
+  Smart Contract Checks:
+  1. Caller == client
+  2. Milestone status == submitted
+  3. Deadline not passed
+  4. Escrow has sufficient funds
+end note
+
+alt All Checks Pass
+    SC -> ETH : Transfer ETH\nescrow -> freelancer
+    activate ETH
+    ETH -->> SC : Transaction confirmed
+    deactivate ETH
+    
+    SC -->> FE : Return txHash + event
+    
+    FE -> API : POST /api/contracts/:id/milestone/:idx/confirm
+    activate API
+    API -> DB : Update milestone status\nstatus: "paid"
+    activate DB
+    DB -->> API : Confirm
+    deactivate DB
+    API -->> FE : Success
+    deactivate API
+    
+    FE -> Freelancer : Show "Payment Released"
+    note over FE: Freelancer receives ETH\nin their wallet
+    
+else Deadline Passed
+    SC -->> FE : Revert "Deadline exceeded"
+    FE -> Client : Show error
+end
+deactivate SC
+
+@enduml

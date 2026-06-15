@@ -1,0 +1,109 @@
+================================================================================
+                      TECHNOLOGY STACK SPECIFICATION
+                      FreeLedger - Capstone Project V2.0
+================================================================================
+
+Date: April 13, 2026
+Version: 2.0
+
+================================================================================
+1. FRONTEND
+================================================================================
+- React.js: 18.2.x
+- JavaScript: ES6+
+- ethers.js: 6.x (Blockchain interaction, MetaMask)
+- axios: For API calls
+- react-router-dom: 6.x (Routing)
+
+================================================================================
+2. BACKEND
+================================================================================
+- FastAPI: 0.100+ (Python 3.9+)
+- web3.py: 6.x (Blockchain queries, read operations)
+- SQLAlchemy: 2.x (ORM)
+- python-jose: 3.3.x (JWT Authentication)
+- psycopg2-binary: PostgreSQL driver
+- redis-py: Session management
+
+================================================================================
+3. DATABASE & STORAGE
+================================================================================
+- PostgreSQL: 15.x (Metadata, pseudonymous IDs)
+- Redis: 7.x (Session store, 1-hour TTL)
+- Kubo (IPFS): 0.28.x (File storage)
+
+================================================================================
+4. BLOCKCHAIN & SMART CONTRACTS
+================================================================================
+- Solidity: 0.8.x
+- Hardhat: 2.x
+- OpenZeppelin: 5.x
+- MetaMask: Browser Extension
+
+================================================================================
+5. DOCKER CONTAINERS
+================================================================================
+- PostgreSQL (container) - Port: 5432
+- Redis (container) - Port: 6379
+- IPFS/Kubo (container) - Port: 5001 (API), 8080 (Gateway)
+- Backend (local or container) - Port: 8000
+- Frontend (local dev server) - Port: 3000
+- Hardhat Node (local) - Port: 8545
+
+================================================================================
+6. KEY DESIGN DECISIONS
+================================================================================
+- Wallet addresses: SESSION-ONLY in Redis (1h expiry), NEVER in PostgreSQL
+- User IDs: Pseudonymous (e.g., "usr_abc123")
+- IPFS uploads: Through backend API (metadata in PostgreSQL)
+- Blockchain reads: web3.py (backend)
+- Blockchain writes: ethers.js (frontend via MetaMask)
+- Admin Panel: Separate UI for dispute management + user CRUD + analytics
+
+================================================================================
+7. NAMING CONVENTION
+================================================================================
+- Files and folders: snake_case (e.g., user_service.py, auth_router.js)
+- Components: PascalCase (e.g., Navbar.js, ContractCard.js)
+- CSS classes: kebab-case (e.g., .contract-card, .btn-primary)
+
+================================================================================
+8. API ENDPOINTS OVERVIEW
+================================================================================
+Authentication:
+- POST /api/auth/login
+- POST /api/auth/logout
+- GET /api/auth/me
+
+Contracts:
+- POST /api/contracts
+- GET /api/contracts
+- GET /api/contracts/{id}
+- POST /api/contracts/{id}/sign
+
+Milestones:
+- POST /api/contracts/{id}/milestones/{idx}/submit
+- POST /api/contracts/{id}/milestones/{idx}/approve
+
+Disputes:
+- POST /api/contracts/{id}/dispute
+- GET /api/admin/disputes
+- POST /api/admin/disputes/{id}/resolve
+
+Admin:
+- GET /api/admin/users
+- PUT /api/admin/users/{id}
+- DELETE /api/admin/users/{id}
+- GET /api/admin/analytics
+
+================================================================================
+9. PROJECT STRUCTURE
+================================================================================
+Capstone_ProjectV2.0/
+├── backend/           # FastAPI application
+├── frontend/          # React application
+├── contracts/         # Hardhat + Solidity
+├── docker/            # Docker configs
+├── database/         # Schema + migrations
+├── docs/             # Documentation (papers, plantuml)
+└── tests/            # Integration tests

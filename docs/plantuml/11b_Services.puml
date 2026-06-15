@@ -1,0 +1,43 @@
+@startuml Services
+!theme plain
+skinparam linetype ortho
+skinparam nodesep 80
+
+title Services
+
+package "Services" {
+
+    class IPFSService {
+        + uploadJSON(data: Object): String
+        + uploadFile(file: File): String
+        + getJSON(cid: String): Object
+        + getFile(cid: String): File
+        + verifyCID(cid: String): Boolean
+    }
+
+    class SignatureVerification {
+        + verifySignature(signature: String, address: String, challenge: String): Boolean
+        + generateTypedData(contractTerms: Object, parties: Object): Object
+        + verifyTypedData(typedData: Object, signature: String, address: String): Boolean
+    }
+
+    class AuthService {
+        + login(wallet: String, signature: String): Session
+        + logout(sessionId: String): Void
+        + validateSession(sessionId: String): Boolean
+    }
+
+    class ContractService {
+        + createContract(terms: Object, clientSignature: String): Contract
+        + signContract(contractId: String, signature: String): Void
+        + submitMilestone(contractId: String, milestoneIndex: Integer, deliverableCID: String): Void
+        + approveMilestone(contractId: String, milestoneIndex: Integer): Void
+    }
+
+    class DisputeService {
+        + raiseDispute(contractId: String, reason: String, description: String): Dispute
+        + resolveDispute(disputeId: String, decision: Enum): Void
+    }
+}
+
+@enduml

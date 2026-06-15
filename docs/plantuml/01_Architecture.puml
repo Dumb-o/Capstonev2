@@ -1,0 +1,78 @@
+@startuml
+skinparam activity {
+    DiamondBackgroundColor white
+    DiamondBorderColor #333333
+    DiamondFontSize 11
+    BarColor #333333
+    StartColor #333333
+    EndColor #333333
+    BackgroundColor #FAFAFA
+    ArrowColor #333333
+}
+
+skinparam package {
+    BackgroundColor #FAFAFA
+    BorderColor #333333
+    FontSize 12
+}
+
+skinparam rectangle {
+    BackgroundColor white
+    BorderColor #333333
+    RoundCorner 8
+}
+
+skinparam roundcorner 8
+skinparam arrowsize 10
+
+package "Frontend Layer" {
+    rectangle "React\n(Web Application)" as React
+    rectangle "ethers.js\n(Blockchain Library)" as Ethers
+    rectangle "MetaMask\n(Wallet)" as MetaMask
+    
+    React -> Ethers : uses
+    React -> MetaMask : connects
+}
+
+package "Session Layer" {
+    rectangle "Redis" as Redis
+    rectangle "session_create()" as SessionCreate
+    rectangle "session_verify()" as SessionVerify
+    
+    Redis --> SessionCreate : stores
+    Redis --> SessionVerify : validates
+}
+
+package "Smart Contract Layer" {
+    rectangle "Solidity" as Solidity
+    rectangle "Hardhat" as Hardhat
+    rectangle "OpenZeppelin" as OZ
+    rectangle "Ethereum (Geth)" as Geth
+    
+    Solidity --> Hardhat : compiled by
+    Solidity --> OZ : uses
+    Geth --> Solidity : deploys to
+}
+
+package "Data Storage" {
+    rectangle "Kubo\n(IPFS Node)" as Kubo
+    rectangle "PostgreSQL" as PG
+    
+    rectangle "upload_to_ipfs()" as IPFSUpload
+    rectangle "store_cid_to_db()" as StoreCID
+    
+    Kubo --> IPFSUpload : provides
+    PG --> StoreCID : provides
+}
+
+' Connections
+MetaMask --> Redis : eth_authentication()\n成功后
+React --> SessionCreate : after auth
+SessionCreate --> Redis : session token
+React --> Kubo : upload files
+React --> PG : store metadata
+Kubo --> PG : CID metadata
+React --> Solidity : deploy contract
+Solidity --> Geth : blockchain tx
+
+@enduml

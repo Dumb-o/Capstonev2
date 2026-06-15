@@ -1,0 +1,85 @@
+@startuml MetaMask_Login
+!theme plain
+skinparam backgroundColor transparent
+skinparam transparentBackground true
+skinparam packageBackgroundColor transparent
+skinparam groupBackgroundColor transparent
+skinparam noteBackgroundColor transparent
+skinparam rectangleBackgroundColor transparent
+skinparam actorBackgroundColor transparent
+skinparam participantBackgroundColor transparent
+skinparam sequenceBoxBackgroundColor transparent
+hide footbox
+
+title MetaMask Login Flow
+
+actor "User" as User
+participant "Frontend" as FE
+participant "MetaMask" as MM
+participant "Auth Service" as Auth
+participant "Redis Session" as Session
+participant "PostgreSQL" as DB
+
+== Login Flow ==
+
+User -> FE : Click "Login with MetaMask"
+activate FE
+
+FE -> MM : eth_requestAccounts()
+activate MM
+MM -> User : Show approval popup
+User -> MM : Approve connection
+MM -->> FE : Return wallet address\n["0xABC...123"]
+deactivate MM
+
+FE -> FE : Generate challenge\n"Login to FreeLedger: {timestamp}"
+
+FE -> MM : personal.sign(challenge, address)
+activate MM
+MM -> User : Show sign popup
+User -> MM : Sign message
+MM -->> FE : Return signature
+deactivate MM
+
+FE -> Auth : POST /api/auth/login\n{address, signature, role}
+activate Auth
+
+Auth -> Auth : verifySignature(signature, address, challenge)
+
+alt Signature Valid
+    Auth -> Session : Create session\n{wallet, role, expiresIn: 1h}
+    activate Session
+    Session -->> Auth : sessionId
+    deactivate Session
+    
+    alt User exists
+        Auth -> DB : Get user profile (pseudonymous)
+    else New User
+        Auth -> DB : Create pseudonymous profile
+    end
+    DB -->> Auth : user profile
+    
+    Auth -->> FE : JWT Token + user profile
+    FE -> FE : Store in sessionStorage\nRedirect to dashboard
+    
+    note right: Wallet address is SESSION-ONLY\nNever stored in database
+    
+else Signature Invalid
+    Auth -->> FE : 401 Unauthorized
+    FE -> User : Show error
+end
+deactivate Auth
+deactivate FE
+
+== Logout Flow ==
+
+User -> FE : Click "Logout"
+FE -> Auth : POST /api/auth/logout
+activate Auth
+Auth -> Session : Destroy session
+Session -->> Auth : Confirm
+deactivate Session
+Auth -->> FE : Success
+FE -> FE : Clear sessionStorage\nRedirect to login
+
+@enduml

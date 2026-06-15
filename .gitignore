@@ -1,0 +1,17 @@
+node_modules/
+contracts/node_modules/
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+frontend/build/
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+*.pyc
+.env
+*.egg-info/
+dist/
+.DS_Store
+*.log
+__pycache__/
+

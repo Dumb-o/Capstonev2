@@ -1,0 +1,120 @@
+================================================================================
+                          PORTS CONFIGURATION
+                          FreeLedger - Capstone Project V2.0
+================================================================================
+
+Date: April 13, 2026
+Version: 1.0
+
+================================================================================
+PORT ASSIGNMENTS
+================================================================================
+
+| Service               | Port  | Protocol  | Description                    |
+|-----------------------|-------|-----------|--------------------------------|
+| PostgreSQL            | 5432  | TCP       | Main database                  |
+| Redis                 | 6379  | TCP       | Session store & caching       |
+| IPFS API              | 5001  | HTTP      | IPFS node API                  |
+| IPFS Gateway          | 8080  | HTTP      | IPFS content gateway           |
+| Backend API           | 8000  | HTTP      | FastAPI server (main)          |
+| Backend Docs          | 8001  | HTTP      | FastAPI Swagger UI             |
+| Frontend Dev          | 3000  | HTTP      | React development server      |
+| Admin Frontend Dev    | 3001  | HTTP      | React admin panel (admin mode)|
+| Hardhat/Local Node    | 8545  | HTTP      | Ethereum local network RPC    |
+| Hardhat/WS            | 8546  | WebSocket | Ethereum local network WS     |
+
+================================================================================
+ENVIRONMENT VARIABLES REFERENCE
+================================================================================
+
+# Database
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=freeledger
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# IPFS
+IPFS_HOST=localhost
+IPFS_PORT=5001
+IPFS_GATEWAY=http://localhost:8080
+
+# Backend
+BACKEND_HOST=0.0.0.0
+BACKEND_PORT=8000
+
+# Frontend (dev)
+REACT_APP_API_URL=http://localhost:8000/api
+REACT_APP_IPFS_GATEWAY=http://localhost:8080
+
+# Blockchain (Hardhat Local)
+REACT_APP_BLOCKCHAIN_RPC=http://localhost:8545
+REACT_APP_CHAIN_ID=31337
+
+================================================================================
+DOCKER PORT MAPPINGS
+================================================================================
+
+In docker-compose.yml:
+
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  ipfs:
+    ports:
+      - "5001:5001"  # API
+      - "8080:8080"  # Gateway
+
+  backend:
+    ports:
+      - "8000:8000"
+      - "8001:8001"  # Swagger docs
+
+================================================================================
+FRONTEND ENV FILE (.env)
+================================================================================
+
+REACT_APP_API_URL=http://localhost:8000/api
+REACT_APP_IPFS_GATEWAY=http://localhost:8080
+REACT_APP_BLOCKCHAIN_RPC=http://localhost:8545
+REACT_APP_CHAIN_ID=31337
+
+================================================================================
+BACKEND ENV FILE (.env)
+================================================================================
+
+# Database
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/freeledger
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# IPFS
+IPFS_API_URL=http://localhost:5001
+IPFS_GATEWAY_URL=http://localhost:8080
+
+# JWT
+JWT_SECRET_KEY=your_secret_key_here
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION=3600
+
+# Blockchain
+ETHEREUM_RPC_URL=http://localhost:8545
+CONTRACT_ADDRESS=
+
+================================================================================
+NOTES
+================================================================================
+- Default Hardhat chain ID: 31337 (localhost)
+- For production, change RPC URLs to Infura/Alchemy
+- JWT expiration is in seconds (3600 = 1 hour)
+- IPFS gateway is read-only; uploads go through backend API
