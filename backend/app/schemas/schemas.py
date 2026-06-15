@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from app.utils.sanitizer import SanitizedStr, SanitizedOptionalStr
+
 
 class ChallengeRequest(BaseModel):
     address: str = Field(..., pattern="^0x[a-fA-F0-9]{40}$")
@@ -29,12 +31,12 @@ class RefreshRequest(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = None
-    bio: Optional[str] = None
+    username: SanitizedOptionalStr = None
+    bio: SanitizedOptionalStr = None
     skills: Optional[list[str]] = None
     hourly_rate: Optional[float] = None
     avatar_cid: Optional[str] = None
-    headline: Optional[str] = None
+    headline: SanitizedOptionalStr = None
     experience_level: Optional[str] = None
     industries: Optional[list[str]] = None
     is_available: Optional[bool] = None
@@ -44,7 +46,7 @@ class UserUpdate(BaseModel):
 class EmailRegisterRequest(BaseModel):
     email: str = Field(..., pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
     password: str = Field(..., min_length=8, max_length=128)
-    username: Optional[str] = None
+    username: SanitizedOptionalStr = None
     role: Optional[str] = None
 
 
@@ -78,8 +80,8 @@ class UserResponse(BaseModel):
 
 
 class JobCreate(BaseModel):
-    title: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
+    title: SanitizedStr = Field(..., min_length=1, max_length=200)
+    description: SanitizedOptionalStr = None
     budget: float = Field(..., gt=0)
     category: Optional[str] = None
     skills: list[str] = []
@@ -87,8 +89,8 @@ class JobCreate(BaseModel):
 
 
 class JobUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
+    title: SanitizedOptionalStr = None
+    description: SanitizedOptionalStr = None
     budget: Optional[float] = None
     status: Optional[str] = None
 
@@ -117,7 +119,7 @@ class PaginatedJobs(BaseModel):
 
 
 class ProposalCreate(BaseModel):
-    cover_letter: Optional[str] = None
+    cover_letter: SanitizedOptionalStr = None
     bid_amount: float = Field(..., gt=0)
     estimated_days: Optional[int] = Field(None, gt=0)
 
@@ -140,7 +142,7 @@ class ProposalResponse(BaseModel):
 
 
 class MilestoneDef(BaseModel):
-    description: str
+    description: SanitizedStr
     amount: float
     due_date: Optional[datetime] = None
 
@@ -148,8 +150,8 @@ class MilestoneDef(BaseModel):
 class ContractCreate(BaseModel):
     job_id: Optional[str] = None
     freelancer_id: str
-    title: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
+    title: SanitizedStr = Field(..., min_length=1, max_length=200)
+    description: SanitizedOptionalStr = None
     total_amount: float = Field(..., gt=0)
     deadline: Optional[datetime] = None
     milestones: list[MilestoneDef] = Field(..., min_length=1)
@@ -187,11 +189,11 @@ class ContractDetail(BaseModel):
 
 class MilestoneSubmit(BaseModel):
     deliverable_cid: str = Field(..., min_length=1)
-    notes: Optional[str] = None
+    notes: SanitizedOptionalStr = None
 
 
 class MilestoneReject(BaseModel):
-    reason: str
+    reason: SanitizedStr
 
 
 class MilestoneResponse(BaseModel):
@@ -213,12 +215,12 @@ class MilestoneResponse(BaseModel):
 
 class DisputeCreate(BaseModel):
     raised_by: str = Field(..., pattern="^(client|freelancer)$")
-    reason: str = Field(..., min_length=1)
+    reason: SanitizedStr = Field(..., min_length=1)
 
 
 class DisputeResolve(BaseModel):
     decision: str = Field(..., pattern="^(refund|release)$")
-    notes: Optional[str] = None
+    notes: SanitizedOptionalStr = None
 
 
 class DisputeResponse(BaseModel):
@@ -239,7 +241,7 @@ class DisputeResponse(BaseModel):
 
 class MessageSend(BaseModel):
     receiver_id: str
-    content: str = Field(..., min_length=1, max_length=5000)
+    content: SanitizedStr = Field(..., min_length=1, max_length=5000)
 
 
 class MessageResponse(BaseModel):
@@ -306,14 +308,14 @@ class AdminStats(BaseModel):
 class AdminUserCreate(BaseModel):
     email: str = Field(..., pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
     password: str = Field(..., min_length=6)
-    username: Optional[str] = None
+    username: SanitizedOptionalStr = None
     role: str = "freelancer"
     hourly_rate: float = 0.0
 
 class AdminJobCreate(BaseModel):
     client_id: str
-    title: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
+    title: SanitizedStr = Field(..., min_length=1, max_length=200)
+    description: SanitizedOptionalStr = None
     budget: float = Field(..., gt=0)
     category: Optional[str] = None
     skills: list[str] = []
@@ -323,7 +325,7 @@ class AdminJobCreate(BaseModel):
 class AdminProposalCreate(BaseModel):
     job_id: str
     freelancer_id: str
-    cover_letter: Optional[str] = None
+    cover_letter: SanitizedOptionalStr = None
     bid_amount: float = Field(..., gt=0)
     estimated_days: Optional[int] = Field(None, gt=0)
 
@@ -331,8 +333,8 @@ class AdminContractCreate(BaseModel):
     job_id: Optional[str] = None
     client_id: str
     freelancer_id: str
-    title: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
+    title: SanitizedStr = Field(..., min_length=1, max_length=200)
+    description: SanitizedOptionalStr = None
     total_amount: float = Field(..., gt=0)
     deadline: Optional[datetime] = None
     status: Optional[str] = "pending_signatures"
@@ -340,7 +342,7 @@ class AdminContractCreate(BaseModel):
 class AdminDisputeCreate(BaseModel):
     contract_id: str
     raised_by: str = Field(..., pattern="^(client|freelancer)$")
-    reason: str = Field(..., min_length=1)
+    reason: SanitizedStr = Field(..., min_length=1)
 
 class PaginatedUsers(BaseModel):
     users: list[UserResponse]
