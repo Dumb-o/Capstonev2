@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     client_private_key: str = ""
     freelancer_private_key: str = ""
     hardhat_account_index: int = 0
+    repin_interval_seconds: int = 21600
     log_level: str = "DEBUG"
 
     class Config:

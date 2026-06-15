@@ -8,9 +8,11 @@ from fastapi.responses import FileResponse, RedirectResponse
 
 from app.config import settings
 from app.database import init_db
+from app.middleware.rate_limit import RateLimitMiddleware
 from app.redis_client import init_redis, close_redis
 from app.routers import auth, users, jobs, proposals, contracts, disputes, messages, ipfs, admin, recommendations
 from app.services.event_listener import start_event_listener
+from app.services.repin_service import start_repin_service
 
 FRONTEND_BUILD = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "build")
 
@@ -21,6 +23,7 @@ async def lifespan(app: FastAPI):
     await init_redis()
     if settings.client_private_key:
         start_event_listener()
+    start_repin_service()
     yield
     await close_redis()
 
@@ -39,6 +42,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(RateLimitMiddleware)
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
