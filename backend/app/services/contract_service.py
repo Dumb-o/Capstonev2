@@ -16,7 +16,8 @@ from app.utils.exceptions import NotFoundError, ValidationError, AuthorizationEr
 from app.services import ipfs_service
 from app.services.blockchain_service import (
     create_contract_on_chain, fund_contract_on_chain,
-    submit_milestone_on_chain, approve_milestone_on_chain, to_wei
+    submit_milestone_on_chain, approve_milestone_on_chain,
+    raise_dispute_on_chain, resolve_dispute_on_chain, to_wei
 )
 from app.utils.helpers import pagination_params
 
@@ -71,7 +72,7 @@ async def create_contract(
 
     if pk:
         freelancer = await db.get(User, data.freelancer_id)
-        on_chain = create_contract_on_chain(
+        on_chain = await create_contract_on_chain(
             freelancer_address=freelancer.wallet_address,
             title=data.title,
             terms_cid=terms_cid,
@@ -189,7 +190,7 @@ async def fund_contract(
     if not pk:
         raise ValidationError("No private key configured for on-chain funding")
 
-    tx_hash = fund_contract_on_chain(
+    tx_hash = await fund_contract_on_chain(
         contract_id=contract.on_chain_id,
         amount_wei=to_wei(contract.total_amount),
         client_private_key=pk,
@@ -220,6 +221,7 @@ async def submit_milestone(
     deliverable_cid: str,
     notes: str | None,
     user_id: str,
+    private_key: str | None = None,
 ) -> ContractMilestone:
     contract = await db.get(Contract, contract_id)
     if not contract:
@@ -245,6 +247,15 @@ async def submit_milestone(
     milestone.submission_notes = notes
     milestone.status = MilestoneStatus.submitted
     milestone.submitted_at = datetime.utcnow()
+
+    pk = private_key or settings.freelancer_private_key or settings.client_private_key
+    if pk and contract.on_chain_id is not None:
+        await submit_milestone_on_chain(
+            contract_id=contract.on_chain_id,
+            milestone_index=milestone_index,
+            deliverable_cid=deliverable_cid,
+            freelancer_private_key=pk,
+        )
 
     return milestone
 
@@ -282,7 +293,7 @@ async def approve_milestone(
     pk = private_key or settings.client_private_key
     tx_hash = None
     if pk and contract.on_chain_id is not None:
-        tx_hash = approve_milestone_on_chain(
+        tx_hash = await approve_milestone_on_chain(
             contract_id=contract.on_chain_id,
             milestone_index=milestone_index,
             client_private_key=pk,

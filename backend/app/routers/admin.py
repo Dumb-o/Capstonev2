@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db
 from app.middleware.auth import get_current_admin
 from app.models.models import User, Job, Contract, Proposal, Message, Dispute, ContractStatus, DisputeStatus, DisputeDecision
@@ -13,6 +14,7 @@ from app.schemas.schemas import (
     AdminDisputeCreate,
 )
 from app.services.auth_service import hash_password
+from app.services.blockchain_service import resolve_dispute_on_chain
 from app.utils.exceptions import NotFoundError, ValidationError
 from app.utils.helpers import pagination_params
 from app.routers.proposals import _enrich_proposals
@@ -431,6 +433,14 @@ async def resolve_dispute(
     dispute.decision = decision
     dispute.resolved_by = admin.id
     dispute.resolution_notes = data.notes
+
+    pk = settings.client_private_key
+    if pk and dispute.contract.on_chain_id is not None:
+        await resolve_dispute_on_chain(
+            contract_id=dispute.contract.on_chain_id,
+            decision=decision.value,
+            admin_private_key=pk,
+        )
 
     if decision == DisputeDecision.refund:
         dispute.contract.status = ContractStatus.cancelled

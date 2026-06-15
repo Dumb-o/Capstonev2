@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db
 from app.middleware.auth import get_current_user
 from app.models.models import User, Contract, Dispute, ContractStatus, DisputeStatus
 from app.schemas.schemas import DisputeCreate, DisputeResponse
+from app.services.blockchain_service import raise_dispute_on_chain
 from app.utils.exceptions import NotFoundError, AuthorizationError, ValidationError
 from app.utils.helpers import pagination_params
 
@@ -40,6 +42,14 @@ async def create_dispute(
     contract.status = ContractStatus.disputed
     db.add(dispute)
     await db.flush()
+
+    pk = settings.client_private_key
+    if pk and contract.on_chain_id is not None:
+        await raise_dispute_on_chain(
+            contract_id=contract.on_chain_id,
+            initiator_private_key=pk,
+        )
+
     return DisputeResponse.model_validate(dispute)
 
 

@@ -1,0 +1,99 @@
+P01 — Async Blockchain Service, Milestone On-Chain Anchoring, and Dispute Blockchain Notification
+===============================================================================================
+
+Date: 2026-06-15
+Author: Pawan Poudel
+
+---
+
+Steps to reproduce
+------------------
+
+1. Ensure Python 3.12+ is available (this test uses `python3.12` on macOS).
+
+2. Create a virtual environment and install test dependencies:
+
+       python3.12 -m venv /tmp/testvenv
+       /tmp/testvenv/bin/pip install pytest pytest-asyncio httpx sqlalchemy aiosqlite \
+           pydantic-settings python-jose passlib bcrypt eth-account web3 redis fastapi \
+           uvicorn python-multipart greenlet
+
+3. From the project root, set the database URL to SQLite (avoids needing PostgreSQL)
+   and run the test suite:
+
+       cd /Users/pawanpoudel/Downloads/Capstonev2-bijee-frontend
+       DATABASE_URL="sqlite+aiosqlite:///:memory:" PYTHONPATH=backend \
+           /tmp/testvenv/bin/pytest tests/backend/test_p01_async_blockchain.py -v \
+           -p no:cacheprovider --override-ini="asyncio_mode=auto"
+
+   (The file tests/backend/test_p01_async_blockchain.py is the test input.)
+
+4. Expected result: all 9 tests pass (5 unit + 4 integration).
+
+---
+
+Input: test file (tests/backend/test_p01_async_blockchain.py)
+--------------------------------------------------------------
+
+The test file covers:
+
+  P0.1 — Async blockchain service:
+    • test_blockchain_submit_milestone_on_chain   — submitMilestone called via to_thread
+    • test_blockchain_raise_dispute_on_chain      — raiseDispute called via to_thread
+    • test_blockchain_resolve_dispute_on_chain_refund   — refundDispute called
+    • test_blockchain_resolve_dispute_on_chain_release   — releasePayment called
+    • test_blockchain_helpers                     — to_wei/from_wei/calculate_fee pure funcs
+
+  P0.2 — Milestone on-chain anchoring:
+    • test_submit_milestone_triggers_on_chain     — POST /api/contracts/{id}/milestones/0/submit
+                                                    calls contract_service → submit_milestone_on_chain
+
+  P0.3 — Dispute blockchain notification:
+    • test_create_dispute_triggers_on_chain       — POST /api/contracts/{id}/disputes
+                                                    calls raise_dispute_on_chain
+    • test_admin_resolve_dispute_refund_triggers_on_chain  — POST /api/admin/disputes/{id}/resolve
+                                                             calls refundDispute path
+    • test_admin_resolve_dispute_release_triggers_on_chain — POST /api/admin/disputes/{id}/resolve
+                                                             calls releasePayment path
+
+  Unit tests mock web3 at the module level (get_web3 / get_contract).
+  Integration tests use FastAPI TestClient (httpx.AsyncClient + ASGITransport),
+  override DB dependency with SQLite in-memory, and patch blockchain functions
+  at their import site (app.services.contract_service, app.routers.disputes,
+  app.routers.admin) to verify correct arguments are passed.
+
+---
+
+Output (test run result)
+------------------------
+
+$ DATABASE_URL="sqlite+aiosqlite:///:memory:" PYTHONPATH=backend \
+    /tmp/testvenv/bin/pytest tests/backend/test_p01_async_blockchain.py -v \
+    -p no:cacheprovider --override-ini="asyncio_mode=auto" --tb=short
+
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.1.0, pluggy-1.6.0
+rootdir: /Users/pawanpoudel/Downloads/Capstonev2-bijee-frontend
+plugins: asyncio-1.4.0, anyio-4.13.0
+asyncio: mode=Mode.AUTO
+collecting ... collected 9 items
+
+tests/backend/test_p01_async_blockchain.py::test_blockchain_submit_milestone_on_chain PASSED [ 11%]
+tests/backend/test_p01_async_blockchain.py::test_blockchain_raise_dispute_on_chain PASSED [ 22%]
+tests/backend/test_p01_async_blockchain.py::test_blockchain_resolve_dispute_on_chain_refund PASSED [ 33%]
+tests/backend/test_p01_async_blockchain.py::test_blockchain_resolve_dispute_on_chain_release PASSED [ 44%]
+tests/backend/test_p01_async_blockchain.py::test_blockchain_helpers         PASSED [ 55%]
+tests/backend/test_p01_async_blockchain.py::test_submit_milestone_triggers_on_chain PASSED [ 66%]
+tests/backend/test_p01_async_blockchain.py::test_create_dispute_triggers_on_chain PASSED [ 77%]
+tests/backend/test_p01_async_blockchain.py::test_admin_resolve_dispute_refund_triggers_on_chain PASSED [ 88%]
+tests/backend/test_p01_async_blockchain.py::test_admin_resolve_dispute_release_triggers_on_chain PASSED [100%]
+
+======================== 9 passed, 11 warnings in 2.55s ========================
+
+All 9 tests passed, confirming that:
+
+  • blockchain_service.py functions are callable as async (wrapped via asyncio.to_thread)
+  • submit_milestone calls submit_milestone_on_chain with correct (contract_id, milestone_index, deliverable_cid)
+  • raise_dispute raises the dispute on-chain via the smart contract
+  • admin resolve dispatches to refundDispute (refund) or releasePayment (release)
+  • the router-level endpoints trigger the correct blockchain functions with the right arguments
