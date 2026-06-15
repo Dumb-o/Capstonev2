@@ -1,5 +1,5 @@
-P2 — CORS Hardening, Input Sanitization, Integration Tests
-===========================================================
+P2 — CORS Hardening, Input Sanitization, Integration Tests, Load Testing
+=========================================================================
 
 Date: 2026-06-15
 Author: Pawan Poudel
@@ -125,5 +125,42 @@ Code changes summary
   tests/backend/test_integration.py   | 442 ++++++++++++++++++++++++++++++++++++++++++
   5 files changed, 501 insertions(+), 25 deletions(-)
 
+---
+
+### P2.4 — Load Testing
+
+File: `tests/load/locustfile.py` (new)
+
+Five user classes simulating realistic workloads:
+
+  1. **BrowseJobsUser** (100 users) — unauthenticated read-only: list jobs, filter, health
+  2. **ClientUser** (50 users) — login, create jobs, view contracts/proposals
+  3. **FreelancerUser** (50 users) — login, browse open jobs, submit proposals
+  4. **AdminUser** (5 users) — admin stats, user list, dispute list
+  5. **MixedUser** (80 users) — combined client/freelancer read+write workload
+
+Target metrics:
+  - P95 < 1.5s for GET endpoints
+  - P95 < 3.0s for POST/PUT endpoints
+  - Error rate < 1%
+
+Run with:
+
+    locust -f tests/load/locustfile.py --host http://localhost:8000
+    # Open http://localhost:8089 in browser, set 100 users / 10s spawn
+
+---
+
+Code changes summary
+--------------------
+
+  backend/app/config.py               |   5 +-
+  backend/app/main.py                 |   2 +-
+  backend/app/schemas/schemas.py      |  67 +++++-----
+  backend/app/utils/sanitizer.py      |  24 +++++
+  tests/backend/test_integration.py   | 442 ++++++++++++++++++++++++++++++++++
+  tests/load/locustfile.py            | 265 ++++++++++++++++++++++++
+  6 files changed, 766 insertions(+), 25 deletions(-)
+
 Branch: feat/p1-rate-limit-repin-onchain
-Commit: f1072ca
+Commits: f1072ca (integration), 6402c4a (load testing)
