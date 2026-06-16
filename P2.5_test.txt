@@ -1,0 +1,60 @@
+P2.5 — Enhanced Health Checks + Dockerize Backend + Load Test Verification
+=========================================================================
+
+Changes:
+1. Enhanced /api/health endpoint — checks DB, Redis, IPFS, blockchain, event listener
+2. Dockerized backend — Dockerfile + wired into docker-compose.yml
+3. Fixed forward references in schemas.py (UserResponse before TokenResponse, ContractDetail.model_rebuild)
+4. Pinned bcrypt==4.0.1 for passlib compatibility
+5. Added greenlet, psycopg2-binary to requirements
+6. start.sh: configurable PG_HOST/REDIS_HOST, graceful migration failure
+
+Test Results — Health Endpoint
+-------------------------------
+$ curl http://localhost:8000/api/health
+{
+    "status": "ok",
+    "version": "1.0.0",
+    "services": {
+        "database":    { "status": "ok" },
+        "redis":       { "status": "ok" },
+        "ipfs":        { "status": "ok", "version": "0.28.0" },
+        "blockchain":  { "status": "ok", "chain_id": 31337, "block_number": 0 },
+        "event_listener": { "status": "disabled", "detail": "no private key configured" }
+    }
+}
+
+Test Results — Registration (bcrypt fix verified)
+---------------------------------------------------
+$ curl -X POST /api/auth/email/register -d '{"email":"t@t.com","password":"Test123!","username":"tu","role":"freelancer"}'
+{
+    "access_token": "eyJ...",
+    "refresh_token": "eyJ...",
+    "user": { "id": "usr_...", "username": "tu", "email": "t@t.com", "role": "freelancer", ... }
+}
+
+Test Results — Load Test (locust, 20 users, 30s)
+---------------------------------------------------
+Total requests: 300
+Failures:       129 (43.00%)
+
+Failure breakdown (all expected — no 500 errors):
+  - 429 Too Many Requests: rate limiting (auth 10/min, default 60/min)
+  - 403 Forbidden: admin endpoints require admin role
+  - 409 Conflict: duplicate registration attempts
+  - 401 Unauthorized: requests without valid tokens
+
+Zero 500 Internal Server Errors — bcrypt fix confirmed working.
+
+Docker Stack
+-------------
+All 5 containers running:
+  - freeledger-postgres  (healthy)
+  - freeledger-redis     (healthy)
+  - freeledger-ipfs      (healthy, v0.28.0)
+  - freeledger-hardhat   (healthy, chain_id 31337)
+  - freeledger-backend   (port 8000)
+
+Commands:
+  $ docker compose -f docker/docker-compose.yml up -d
+  $ docker compose -f docker/docker-compose.yml down
