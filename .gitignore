@@ -14,5 +14,6 @@ backend/**/__pycache__/
 dist/
 .DS_Store
 *.log
-__pycache__/
+__pycache__
+Pawan_Work_Summary.txt/
 
