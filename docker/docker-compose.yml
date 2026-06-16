@@ -60,6 +60,34 @@ services:
       timeout: 5s
       retries: 10
 
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: freeledger-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://freeledger:freeledger_dev@postgres:5432/freeledger
+      DATABASE_URL_SYNC: postgresql://freeledger:freeledger_dev@postgres:5432/freeledger
+      REDIS_URL: redis://redis:6379/0
+      RPC_URL: http://hardhat:8545
+      IPFS_API_URL: http://ipfs:5001
+      PG_HOST: postgres
+      REDIS_HOST: redis
+      JWT_SECRET: change-this-to-a-random-secret-in-production
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+      REFRESH_TOKEN_EXPIRE_DAYS: "7"
+      CHAIN_ID: "31337"
+      PLATFORM_FEE_BPS: "250"
+      LOG_LEVEL: DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   redis_data:

@@ -14,6 +14,7 @@ logger = logging.getLogger("freeledger.event_listener")
 
 POLL_INTERVAL = 5
 START_BLOCK_KEY = "event_listener:last_processed_block"
+event_listener_running = False
 
 
 def _load_contract_abi() -> dict:
@@ -98,7 +99,9 @@ async def process_dispute_resolved(contract_on_chain_id: int, db):
 
 
 async def poll_events():
+    global event_listener_running
     logger.info("Blockchain event listener started")
+    event_listener_running = True
 
     while True:
         try:

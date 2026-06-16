@@ -20,6 +20,30 @@ class LoginRequest(BaseModel):
     role: Optional[str] = None
 
 
+class UserResponse(BaseModel):
+    id: str
+    username: Optional[str] = None
+    email: Optional[str] = None
+    role: str
+    auth_method: str
+    wallet_address: Optional[str] = None
+    bio: Optional[str] = None
+    skills: list[str] = []
+    hourly_rate: float = 0.0
+    rating: float = 0.0
+    avatar_cid: Optional[str] = None
+    headline: Optional[str] = None
+    experience_level: str = "mid"
+    industries: list[str] = []
+    is_available: bool = True
+    portfolio_cids: list[str] = []
+    is_active: bool = True
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
@@ -53,30 +77,6 @@ class EmailRegisterRequest(BaseModel):
 class EmailLoginRequest(BaseModel):
     email: str
     password: str
-
-
-class UserResponse(BaseModel):
-    id: str
-    username: Optional[str] = None
-    email: Optional[str] = None
-    role: str
-    auth_method: str
-    wallet_address: Optional[str] = None
-    bio: Optional[str] = None
-    skills: list[str] = []
-    hourly_rate: float = 0.0
-    rating: float = 0.0
-    avatar_cid: Optional[str] = None
-    headline: Optional[str] = None
-    experience_level: str = "mid"
-    industries: list[str] = []
-    is_available: bool = True
-    portfolio_cids: list[str] = []
-    is_active: bool = True
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class JobCreate(BaseModel):
@@ -349,3 +349,6 @@ class PaginatedUsers(BaseModel):
     total: int
     page: int
     pages: int
+
+
+ContractDetail.model_rebuild()

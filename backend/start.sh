@@ -9,18 +9,21 @@ if [ ! -f ".env" ]; then
     cp .env.example .env
 fi
 
-echo "Waiting for PostgreSQL..."
-until pg_isready -h localhost -p 5432 -U freeledger 2>/dev/null; do
+PG_HOST="${PG_HOST:-localhost}"
+REDIS_HOST="${REDIS_HOST:-localhost}"
+
+echo "Waiting for PostgreSQL at ${PG_HOST}..."
+until pg_isready -h "${PG_HOST}" -p 5432 -U freeledger 2>/dev/null; do
     sleep 1
 done
 
-echo "Waiting for Redis..."
-until redis-cli -h localhost ping 2>/dev/null; do
+echo "Waiting for Redis at ${REDIS_HOST}..."
+until redis-cli -h "${REDIS_HOST}" ping 2>/dev/null; do
     sleep 1
 done
 
 echo "Running migrations..."
-alembic upgrade head
+alembic upgrade head 2>&1 || echo "Warning: migrations failed (tables may already exist, init_db will handle them)"
 
 echo "Starting uvicorn..."
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --log-level debug

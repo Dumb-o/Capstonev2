@@ -59,7 +59,33 @@ app.include_router(recommendations.router, prefix="/api")
 
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok", "version": "1.0.0"}
+    from app.services.health_service import (
+        check_database, check_redis, check_ipfs,
+        check_blockchain, check_event_listener,
+    )
+
+    db = await check_database()
+    redis = await check_redis()
+    ipfs = await check_ipfs()
+    blockchain = await check_blockchain()
+    event_listener = check_event_listener()
+
+    all_ok = all(
+        s["status"] == "ok" or s["status"] == "disabled"
+        for s in [db, redis, ipfs, blockchain, event_listener]
+    )
+
+    return {
+        "status": "ok" if all_ok else "degraded",
+        "version": "1.0.0",
+        "services": {
+            "database": db,
+            "redis": redis,
+            "ipfs": ipfs,
+            "blockchain": blockchain,
+            "event_listener": event_listener,
+        },
+    }
 
 
 if os.path.isdir(FRONTEND_BUILD):

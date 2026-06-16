@@ -5,6 +5,7 @@ contracts/cache/
 contracts/typechain-types/
 frontend/build/
 backend/venv/
+backend/venv312/
 backend/__pycache__/
 backend/**/__pycache__/
 *.pyc
