@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/GigEscrow.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> GigEscrow.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>68/68</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">91.84% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>90/98</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>19/19</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>99/99</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">76×</span>
+<span class="cline-any cline-yes">70×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30×</span>
+<span class="cline-any cline-yes">29×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">147×</span>
+<span class="cline-any cline-yes">140×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">65×</span>
+<span class="cline-any cline-yes">64×</span>
+<span class="cline-any cline-yes">63×</span>
+<span class="cline-any cline-yes">62×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">61×</span>
+<span class="cline-any cline-yes">61×</span>
+<span class="cline-any cline-yes">61×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">61×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">104×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">104×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-yes">60×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41×</span>
+<span class="cline-any cline-yes">41×</span>
+<span class="cline-any cline-yes">40×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">29×</span>
+<span class="cline-any cline-yes">29×</span>
+<span class="cline-any cline-yes">27×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">26×</span>
+<span class="cline-any cline-yes">26×</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">21×</span>
+<span class="cline-any cline-yes">21×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+&nbsp;
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+&nbsp;
+contract GigEscrow is ReentrancyGuard, Ownable {
+    uint256 public constant PLATFORM_FEE_BPS = 250; // 2.5%
+    uint256 public contractCounter;
+&nbsp;
+    constructor() Ownable(msg.sender) {}
+&nbsp;
+    enum ContractStatus { Created, InProgress, Completed, Cancelled, Disputed }
+    enum MilestoneStatus { Pending, Funded, Submitted, Approved, Rejected }
+&nbsp;
+    struct Milestone {
+        string description;
+        uint256 amount;
+        string deliverableCID;
+        MilestoneStatus status;
+        uint256 submittedAt;
+        uint256 approvedAt;
+    }
+&nbsp;
+    struct EscrowContract {
+        address client;
+        address freelancer;
+        string title;
+        string termsCID;
+        uint256 totalAmount;
+        uint256 deadline;
+        ContractStatus status;
+        uint256 milestoneCount;
+        uint256 completedMilestones;
+    }
+&nbsp;
+    mapping(uint256 =&gt; EscrowContract) public contracts;
+    mapping(uint256 =&gt; mapping(uint256 =&gt; Milestone)) public milestones;
+    mapping(address =&gt; uint256[]) public clientContracts;
+    mapping(address =&gt; uint256[]) public freelancerContracts;
+    mapping(uint256 =&gt; bool) public contractExists;
+&nbsp;
+    event ContractCreated(uint256 indexed contractId, address indexed client, address indexed freelancer, uint256 totalAmount);
+    event MilestoneAdded(uint256 indexed contractId, uint256 milestoneIndex);
+    event MilestoneSubmitted(uint256 indexed contractId, uint256 milestoneIndex, string deliverableCID);
+    event MilestoneApproved(uint256 indexed contractId, uint256 milestoneIndex, uint256 amount);
+    event MilestoneRejected(uint256 indexed contractId, uint256 milestoneIndex);
+    event ContractCompleted(uint256 indexed contractId);
+    event ContractCancelled(uint256 indexed contractId);
+    event DisputeRaised(uint256 indexed contractId, address raisedBy);
+    event DisputeResolved(uint256 indexed contractId, address winner);
+&nbsp;
+    modifier onlyContractParty(uint256 _contractId) {
+        require(
+            msg.sender == contracts[_contractId].client ||
+            msg.sender == contracts[_contractId].freelancer ||
+            msg.sender == owner(),
+            "Not a contract party or owner"
+        );
+        _;
+    }
+&nbsp;
+    modifier onlyClient(uint256 _contractId) {
+        require(msg.sender == contracts[_contractId].client, "Only client");
+        _;
+    }
+&nbsp;
+    modifier onlyFreelancer(uint256 _contractId) {
+        require(msg.sender == contracts[_contractId].freelancer, "Only freelancer");
+        _;
+    }
+&nbsp;
+    modifier contractExistsMod(uint256 _contractId) {
+        require(contractExists[_contractId], "Contract does not exist");
+        _;
+    }
+&nbsp;
+    function createContract(
+        address _freelancer,
+        string memory _title,
+        string memory _termsCID,
+        uint256 _totalAmount,
+        uint256 _deadline,
+        string[] memory _milestoneDescriptions,
+        uint256[] memory _milestoneAmounts
+    ) external returns (uint256) {
+        require(_freelancer != address(0), "Invalid freelancer address");
+        require(_freelancer != msg.sender, "Cannot contract yourself");
+        require(_milestoneDescriptions.length &gt; 0, "Need at least 1 milestone");
+        require(_milestoneDescriptions.length == _milestoneAmounts.length, "Arrays length mismatch");
+&nbsp;
+        uint256 totalMilestoneAmount;
+        for (uint256 i = 0; i &lt; _milestoneAmounts.length; i++) {
+            totalMilestoneAmount += _milestoneAmounts[i];
+        }
+        require(totalMilestoneAmount == _totalAmount, "Milestone amounts must sum to total");
+&nbsp;
+        contractCounter++;
+        uint256 contractId = contractCounter;
+&nbsp;
+        EscrowContract storage escrow = contracts[contractId];
+        escrow.client = msg.sender;
+        escrow.freelancer = _freelancer;
+        escrow.title = _title;
+        escrow.termsCID = _termsCID;
+        escrow.totalAmount = _totalAmount;
+        escrow.deadline = _deadline;
+        escrow.status = ContractStatus.Created;
+        escrow.milestoneCount = _milestoneDescriptions.length;
+&nbsp;
+        for (uint256 i = 0; i &lt; _milestoneDescriptions.length; i++) {
+            milestones[contractId][i] = Milestone({
+                description: _milestoneDescriptions[i],
+                amount: _milestoneAmounts[i],
+                deliverableCID: "",
+                status: MilestoneStatus.Pending,
+                submittedAt: 0,
+                approvedAt: 0
+            });
+            emit MilestoneAdded(contractId, i);
+        }
+&nbsp;
+        contractExists[contractId] = true;
+        clientContracts[msg.sender].push(contractId);
+        freelancerContracts[_freelancer].push(contractId);
+&nbsp;
+        emit ContractCreated(contractId, msg.sender, _freelancer, _totalAmount);
+        return contractId;
+    }
+&nbsp;
+    function fundContract(uint256 _contractId) external payable contractExistsMod(_contractId) onlyClient(_contractId) {
+        EscrowContract storage escrow = contracts[_contractId];
+        require(escrow.status == ContractStatus.Created, "Contract not in created state");
+        require(msg.value == escrow.totalAmount, "Incorrect funding amount");
+&nbsp;
+        escrow.status = ContractStatus.InProgress;
+        for (uint256 i = 0; i &lt; escrow.milestoneCount; i++) {
+            milestones[_contractId][i].status = MilestoneStatus.Funded;
+        }
+    }
+&nbsp;
+    function submitMilestone(uint256 _contractId, uint256 _milestoneIndex, string memory _deliverableCID)
+        external
+        contractExistsMod(_contractId)
+        onlyFreelancer(_contractId)
+    {
+        EscrowContract storage escrow = contracts[_contractId];
+        require(escrow.status == ContractStatus.InProgress, "Contract not in progress");
+        require(_milestoneIndex &lt; escrow.milestoneCount, "Invalid milestone index");
+&nbsp;
+        Milestone storage milestone = milestones[_contractId][_milestoneIndex];
+        require(milestone.status == MilestoneStatus.Funded, "Milestone not ready for submission");
+        require(bytes(_deliverableCID).length &gt; 0, "Deliverable CID required");
+&nbsp;
+        milestone.deliverableCID = _deliverableCID;
+        milestone.status = MilestoneStatus.Submitted;
+        milestone.submittedAt = block.timestamp;
+&nbsp;
+        emit MilestoneSubmitted(_contractId, _milestoneIndex, _deliverableCID);
+    }
+&nbsp;
+    function approveMilestone(uint256 _contractId, uint256 _milestoneIndex)
+        external
+        contractExistsMod(_contractId)
+        onlyClient(_contractId)
+        <span class="missing-if-branch" title="else path not taken" >E</span>nonReentrant
+    {
+        EscrowContract storage escrow = contracts[_contractId];
+        require(escrow.status == ContractStatus.InProgress, "Contract not in progress");
+&nbsp;
+        Milestone storage milestone = milestones[_contractId][_milestoneIndex];
+        require(milestone.status == MilestoneStatus.Submitted, "Milestone not submitted");
+&nbsp;
+        milestone.status = MilestoneStatus.Approved;
+        milestone.approvedAt = block.timestamp;
+        escrow.completedMilestones++;
+&nbsp;
+        uint256 fee = (milestone.amount * PLATFORM_FEE_BPS) / 10000;
+        uint256 payout = milestone.amount - fee;
+&nbsp;
+        payable(escrow.freelancer).transfer(payout);
+        payable(owner()).transfer(fee);
+&nbsp;
+        emit MilestoneApproved(_contractId, _milestoneIndex, payout);
+&nbsp;
+        if (escrow.completedMilestones == escrow.milestoneCount) {
+            _completeContract(_contractId);
+        }
+    }
+&nbsp;
+    function rejectMilestone(uint256 _contractId, uint256 _milestoneIndex)
+        external
+        <span class="missing-if-branch" title="else path not taken" >E</span>contractExistsMod(_contractId)
+        <span class="missing-if-branch" title="else path not taken" >E</span>onlyClient(_contractId)
+    {
+        Milestone storage milestone = milestones[_contractId][_milestoneIndex];
+        require(milestone.status == MilestoneStatus.Submitted, "Milestone not submitted");
+&nbsp;
+        milestone.status = MilestoneStatus.Funded;
+        milestone.deliverableCID = "";
+        milestone.submittedAt = 0;
+&nbsp;
+        emit MilestoneRejected(_contractId, _milestoneIndex);
+    }
+&nbsp;
+    function raiseDispute(uint256 _contractId)
+        external
+        contractExistsMod(_contractId)
+        onlyContractParty(_contractId)
+    {
+        EscrowContract storage escrow = contracts[_contractId];
+        require(
+            escrow.status == ContractStatus.InProgress ||
+<span class="branch-1 cbranch-no" title="branch not covered" >            escrow.status == ContractStatus.Created</span>,
+            "Cannot dispute in current state"
+        );
+&nbsp;
+        escrow.status = ContractStatus.Disputed;
+        emit DisputeRaised(_contractId, msg.sender);
+    }
+&nbsp;
+    function resolveDispute(uint256 _contractId, bool _releaseToFreelancer)
+        external
+        contractExistsMod(_contractId)
+        onlyOwner
+        <span class="missing-if-branch" title="else path not taken" >E</span>nonReentrant
+    {
+        EscrowContract storage escrow = contracts[_contractId];
+        require(escrow.status == ContractStatus.Disputed, "Contract not in dispute");
+&nbsp;
+        address winner = _releaseToFreelancer ? escrow.freelancer : escrow.client;
+&nbsp;
+        if (_releaseToFreelancer) {
+            uint256 balance = address(this).balance;
+            uint256 fee = (balance * PLATFORM_FEE_BPS) / 10000;
+            uint256 payout = balance - fee;
+            payable(escrow.freelancer).transfer(payout);
+            payable(owner()).transfer(fee);
+        } else {
+            payable(escrow.client).transfer(address(this).balance);
+        }
+&nbsp;
+        escrow.status = _releaseToFreelancer ? ContractStatus.Completed : ContractStatus.Cancelled;
+        emit DisputeResolved(_contractId, winner);
+    }
+&nbsp;
+    function cancelContract(uint256 _contractId)
+        external
+        contractExistsMod(_contractId)
+        onlyClient(_contractId)
+        <span class="missing-if-branch" title="else path not taken" >E</span>nonReentrant
+    {
+        EscrowContract storage escrow = contracts[_contractId];
+        require(escrow.status == ContractStatus.Created, "Can only cancel before funding");
+&nbsp;
+        escrow.status = ContractStatus.Cancelled;
+        emit ContractCancelled(_contractId);
+    }
+&nbsp;
+    function _completeContract(uint256 _contractId) private {
+        contracts[_contractId].status = ContractStatus.Completed;
+        emit ContractCompleted(_contractId);
+    }
+&nbsp;
+    function getClientContracts(address _client) external view returns (uint256[] memory) {
+        return clientContracts[_client];
+    }
+&nbsp;
+    function getFreelancerContracts(address _freelancer) external view returns (uint256[] memory) {
+        return freelancerContracts[_freelancer];
+    }
+&nbsp;
+    function getContractDetails(uint256 _contractId)
+        external
+        view
+        contractExistsMod(_contractId)
+        returns (EscrowContract memory)
+    {
+        return contracts[_contractId];
+    }
+&nbsp;
+    function getMilestoneDetails(uint256 _contractId, uint256 _milestoneIndex)
+        external
+        view
+        <span class="missing-if-branch" title="else path not taken" >E</span>contractExistsMod(_contractId)
+        returns (Milestone memory)
+    {
+        require(_milestoneIndex &lt; contracts[_contractId].milestoneCount, "Invalid milestone");
+        return milestones[_contractId][_milestoneIndex];
+    }
+&nbsp;
+    function getContractBalance(uint256 _contractId)
+        external
+        view
+        <span class="missing-if-branch" title="else path not taken" >E</span>contractExistsMod(_contractId)
+        returns (uint256)
+    {
+        return address(this).balance;
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jun 17 2026 00:52:29 GMT+0545 (Nepal Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+@startuml Contract_State_Machine
+!theme plain
+
+title Contract State Machine
+
+[*] --> Draft : Create Contract
+Draft --> Pending : Submit for Signing
+
+Pending --> Signed : Client Signs
+Signed --> Active : Freelancer Signs
+
+Active --> Submitted : Freelancer Submits Work
+Submitted --> Approved : Client Approves
+Submitted --> Revision : Client Requests Revision
+Revision --> Submitted : Freelancer Resubmits
+
+Approved --> Paid : Auto-Payment Release
+
+Paid --> Active : Next Milestone Exists
+Paid --> Completed : All Milestones Done
+
+Submitted --> Disputed : Client Disputes
+Revision --> Disputed : Too Many Revisions
+Disputed --> [*]
+
+Completed --> [*]
+
+@enduml

@@ -1,0 +1,81 @@
+@startuml Dispute_Initiation_Review
+!theme plain
+hide footbox
+
+title Dispute Initiation & Admin Review
+
+actor "Freelancer" as Freelancer
+actor "Client" as Client
+actor "Admin" as Admin
+participant "Frontend" as FE
+participant "Backend API" as API
+participant "IPFS" as IPFS
+participant "Database" as DB
+participant "Smart Contract" as SC
+
+== Dispute Initiation ==
+
+|||
+alt Client raises dispute
+    Client -> FE : Raise Dispute
+else Freelancer raises dispute
+    Freelancer -> FE : Raise Dispute
+end
+|||
+
+FE -> API : POST /api/contracts/:id/dispute
+activate API
+API -> DB : Store dispute\n(status: pending)
+DB -->> API : Confirm
+API -> Admin : Notify new dispute
+API -->> FE : Dispute submitted
+deactivate API
+
+alt Client raised dispute
+    FE -> Freelancer : Notify dispute
+else Freelancer raised dispute
+    FE -> Client : Notify dispute
+end
+
+== Admin Review ==
+
+Admin -> FE : View pending disputes
+FE -> API : GET /api/admin/disputes
+activate API
+API -> DB : Fetch disputes
+DB -->> API : dispute list
+API -->> FE : Display
+deactivate API
+
+Admin -> FE : Select dispute
+
+== Review Process ==
+
+Admin -> FE : Review contract\n+ execution status\n+ deliverables
+
+FE -> API : Fetch contract details
+activate API
+API -> DB : Get metadata
+API -> SC : Query on-chain state
+DB -->> API : contract info
+SC -->> API : escrow, milestones
+API -->> FE : All data
+deactivate API
+
+FE -> API : Fetch deliverables
+activate API
+API -> DB : Get deliverable CIDs
+DB -->> API : CID list
+API -> IPFS : Fetch files
+IPFS -->> API : file data
+API -->> FE : deliverables
+deactivate API
+
+note over Admin
+  Review Summary:
+  - Contract terms & value
+  - Escrow balance & milestone status
+  - Submitted deliverables
+end note
+
+@enduml

@@ -1,0 +1,166 @@
+P2 — CORS Hardening, Input Sanitization, Integration Tests, Load Testing
+=========================================================================
+
+Date: 2026-06-15
+Author: Pawan Poudel
+
+---
+
+Changes made
+------------
+
+### P2.1 — CORS Hardening
+
+File: `backend/app/config.py` (modified)
+
+Added `cors_origins: list[str]` setting with dev defaults:
+  - http://localhost:3000 (frontend dev)
+  - http://localhost:3001 (admin frontend dev)
+  - http://localhost:8000 (backend API / Swagger)
+
+File: `backend/app/main.py` (modified)
+
+Replaced `allow_origins=["*"]` with `allow_origins=settings.cors_origins`.
+For production, set `CORS_ORIGINS='["https://freeledger.example.com"]'` in `.env`.
+
+---
+
+### P2.2 — Input Sanitization (XSS Prevention)
+
+File: `backend/app/utils/sanitizer.py` (new)
+
+Provides two Pydantic-v2 annotated types:
+  - `SanitizedStr` — strips HTML tags, blocks `javascript:`/`data:`/`vbscript:` URIs,
+    removes `on*=` event handlers from required text fields
+  - `SanitizedOptionalStr` — same but allows `None`
+
+File: `backend/app/schemas/schemas.py` (modified)
+
+Applied `SanitizedStr` / `SanitizedOptionalStr` to all user-input text fields:
+  - `UserUpdate`: username, bio, headline
+  - `EmailRegisterRequest`: username
+  - `JobCreate` / `JobUpdate`: title, description
+  - `ProposalCreate`: cover_letter
+  - `ContractCreate` / `AdminContractCreate`: title, description
+  - `MilestoneDef`: description
+  - `MilestoneSubmit`: notes
+  - `MilestoneReject`: reason
+  - `DisputeCreate` / `AdminDisputeCreate`: reason
+  - `DisputeResolve`: notes
+  - `MessageSend`: content
+  - `AdminUserCreate`: username
+  - `AdminJobCreate`: title, description
+  - `AdminProposalCreate`: cover_letter
+
+---
+
+### P2.3 — Integration Tests
+
+File: `tests/backend/test_integration.py` (new)
+
+Two end-to-end integration tests that exercise the full API stack (blockchain
+mocked, real SQLite-in-memory DB, real Pydantic validation):
+
+1. `test_full_contract_lifecycle`:
+   - Create job (client) → Submit proposal (freelancer) → Accept proposal
+     (auto-creates contract) → Both sign → Fund (mock) → Submit milestone
+     (mock) → Approve milestone (mock) → Contract completed
+
+2. `test_dispute_lifecycle`:
+   - Create job → Proposal → Accept → Both sign → Fund → Raise dispute
+     (mock on-chain) → Contract disputed → Admin resolves with refund
+     (mock on-chain) → Contract cancelled
+
+---
+
+Steps to test
+-------------
+
+    cd /Users/pawanpoudel/Downloads/Capstonev2-bijee-frontend
+    DATABASE_URL="sqlite+aiosqlite:///:memory:" PYTHONPATH=backend \
+        /tmp/testvenv/bin/pytest tests/backend/ -v \
+        -p no:cacheprovider --override-ini="asyncio_mode=auto" --tb=line
+
+---
+
+Test output
+-----------
+
+$ DATABASE_URL="sqlite+aiosqlite:///:memory:" PYTHONPATH=backend \
+    /tmp/testvenv/bin/pytest tests/backend/ -v \
+    -p no:cacheprovider --override-ini="asyncio_mode=auto" --tb=line
+
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.1.0, pluggy-1.6.0
+rootdir: /Users/pawanpoudel/Downloads/Capstonev2-bijee-frontend
+plugins: asyncio-1.4.0, anyio-4.13.0
+asyncio: mode=Mode.AUTO
+collecting ... collected 17 items
+
+tests/backend/test_auth.py::test_health_check              PASSED [  5%]
+tests/backend/test_auth.py::test_challenge_endpoint        FAILED [ 11%]  (1)
+tests/backend/test_auth.py::test_challenge_invalid_address PASSED [ 17%]
+tests/backend/test_auth.py::test_login_without_challenge   FAILED [ 23%]  (1)
+tests/backend/test_integration.py::test_full_contract_lifecycle  PASSED [ 29%]
+tests/backend/test_integration.py::test_dispute_lifecycle        PASSED [ 35%]
+tests/backend/test_ipfs.py::test_upload_file_empty         PASSED [ 41%]
+tests/backend/test_ipfs.py::test_file_exists_invalid_cid   PASSED [ 47%]
+tests/backend/test_p01_async_blockchain.py::... (5 tests)  PASSED [ 76%]
+tests/backend/test_p01_async_blockchain.py::... (4 tests)  PASSED [100%]
+
+========================= 15 passed, 2 failed in 0.42s ========================
+
+(1) Pre-existing failures — no Redis running (login) and no DB tables seeded
+    (challenge) in those tests. Unrelated to P2 changes.
+
+---
+
+Code changes summary
+--------------------
+
+  backend/app/config.py               |   5 +-
+  backend/app/main.py                 |   2 +-
+  backend/app/schemas/schemas.py      |  67 ++++++++++----------
+  backend/app/utils/sanitizer.py      |  24 ++++++++
+  tests/backend/test_integration.py   | 442 ++++++++++++++++++++++++++++++++++++++++++
+  5 files changed, 501 insertions(+), 25 deletions(-)
+
+---
+
+### P2.4 — Load Testing
+
+File: `tests/load/locustfile.py` (new)
+
+Five user classes simulating realistic workloads:
+
+  1. **BrowseJobsUser** (100 users) — unauthenticated read-only: list jobs, filter, health
+  2. **ClientUser** (50 users) — login, create jobs, view contracts/proposals
+  3. **FreelancerUser** (50 users) — login, browse open jobs, submit proposals
+  4. **AdminUser** (5 users) — admin stats, user list, dispute list
+  5. **MixedUser** (80 users) — combined client/freelancer read+write workload
+
+Target metrics:
+  - P95 < 1.5s for GET endpoints
+  - P95 < 3.0s for POST/PUT endpoints
+  - Error rate < 1%
+
+Run with:
+
+    locust -f tests/load/locustfile.py --host http://localhost:8000
+    # Open http://localhost:8089 in browser, set 100 users / 10s spawn
+
+---
+
+Code changes summary
+--------------------
+
+  backend/app/config.py               |   5 +-
+  backend/app/main.py                 |   2 +-
+  backend/app/schemas/schemas.py      |  67 +++++-----
+  backend/app/utils/sanitizer.py      |  24 +++++
+  tests/backend/test_integration.py   | 442 ++++++++++++++++++++++++++++++++++
+  tests/load/locustfile.py            | 265 ++++++++++++++++++++++++
+  6 files changed, 766 insertions(+), 25 deletions(-)
+
+Branch: feat/p1-rate-limit-repin-onchain
+Commits: f1072ca (integration), 6402c4a (load testing)

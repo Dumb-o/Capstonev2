@@ -1,0 +1,89 @@
+@startuml Contract_Creation
+!theme plain
+hide footbox
+
+title Contract Creation & Dual Storage (IPFS + Blockchain)
+
+actor "Client" as Client
+participant "Frontend" as FE
+participant "Backend API" as API
+participant "IPFS (Kubo)" as IPFS
+participant "PostgreSQL" as DB
+participant "Smart Contract" as SC
+participant "Ethereum" as ETH
+
+== Contract Creation ==
+
+Client -> FE : Fill contract details\n(title, milestones, value)
+
+FE -> FE : Prepare contract terms JSON
+note right
+  {
+    title: "Website Design",
+    totalValue: 3200,
+    milestones: [...],
+    client: "0xABC...",
+    freelancer: "0xDEF..."
+  }
+end note
+
+FE -> API : POST /api/contracts/create\n{contractData, clientSignature}
+activate API
+
+API -> API : verifySignature(clientSignature)
+
+' IPFS Upload
+API -> IPFS : Upload contract terms\nipfs.add(JSON.stringify(terms))
+activate IPFS
+IPFS -->> API : Return CID\n"QmXyzABC123..."
+deactivate IPFS
+
+' Database Storage
+API -> DB : Store contract metadata\n(No wallet addresses!)
+note right
+  Stored:
+  - pseudonymous_id
+  - terms_cid
+  - total_value
+  NOT stored:
+  - wallet addresses
+end note
+DB -->> API : Confirm
+deactivate DB
+
+API -->> FE : contractId + termsCID\n+ on-chain deployment data
+
+' Blockchain Deployment
+FE -> FE : Prepare smart contract call\ncreateContract(contractId, termsCID, freelancer, value)
+
+FE -> Client : Prompt MetaMask transaction
+Client -> FE : Approve transaction
+
+FE -> SC : Call createContract()
+activate SC
+SC -> ETH : Deploy/Execute transaction
+
+note over ETH
+  Transaction includes:
+  - contractId (bytes32)
+  - termsCID (bytes32)
+  - freelancer address
+  - totalValue (uint256)
+end note
+
+ETH -->> SC : Transaction receipt\n(txHash, blockNumber)
+SC -->> FE : Return txHash
+deactivate SC
+
+' Backend Confirmation
+FE -> API : POST /api/contracts/:id/confirm
+activate API
+API -> DB : Update contract status\nstatus: "active"
+activate DB
+DB -->> API : Confirm
+deactivate DB
+API -->> FE : Success!
+deactivate API
+
+
+@enduml

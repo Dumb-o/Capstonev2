@@ -1,0 +1,22 @@
+diff --git a/node_modules/webpack/hot/dev-server.js b/node_modules/webpack/hot/dev-server.js
+index 3114647..3494dec 100644
+--- a/node_modules/webpack/hot/dev-server.js
++++ b/node_modules/webpack/hot/dev-server.js
+@@ -86,5 +86,5 @@ if (module.hot) {
+ 
+ 	log("info", "[HMR] Waiting for update signal from WDS...");
+ } else {
+-	throw new Error("[HMR] Hot Module Replacement is disabled.");
++	console.warn("[HMR] Hot Module Replacement is disabled.");
+ }
+diff --git a/node_modules/webpack/hot/only-dev-server.js b/node_modules/webpack/hot/only-dev-server.js
+index 785dd33..6902546 100644
+--- a/node_modules/webpack/hot/only-dev-server.js
++++ b/node_modules/webpack/hot/only-dev-server.js
+@@ -114,5 +114,5 @@ if (module.hot) {
+ 
+ 	log("info", "[HMR] Waiting for update signal from WDS...");
+ } else {
+-	throw new Error("[HMR] Hot Module Replacement is disabled.");
++	console.warn("[HMR] Hot Module Replacement is disabled.");
+ }

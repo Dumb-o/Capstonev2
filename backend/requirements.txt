@@ -1,0 +1,25 @@
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+sqlalchemy==2.0.51
+asyncpg==0.31.0
+alembic==1.13.0
+redis==5.0.1
+pydantic==2.13.4
+pydantic-settings==2.8.1
+python-jose[cryptography]==3.3.0
+bcrypt==4.0.1
+passlib[bcrypt]==1.7.4
+web3==6.15.0
+eth-utils<5
+eth-typing<5
+ipfshttpclient==0.8.0a2
+python-multipart==0.0.6
+psycopg2-binary==2.9.12
+greenlet==3.5.1
+httpx==0.26.0
+aiosqlite==0.20.0
+pytest==9.1.0
+pytest-asyncio==1.4.0
+
+# Linting
+ruff==0.15.17

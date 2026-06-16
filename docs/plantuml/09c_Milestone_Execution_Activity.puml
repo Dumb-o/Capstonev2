@@ -1,0 +1,46 @@
+@startuml
+skinparam activity {
+    DiamondBackgroundColor white
+    DiamondBorderColor #333333
+    DiamondFontSize 11
+    BarColor #333333
+    StartColor #333333
+    EndColor #333333
+    BackgroundColor #FAFAFA
+    ArrowColor #333333
+}
+
+skinparam roundcorner 8
+skinparam arrowsize 10
+
+start
+:Freelancer Submits\nDeliverable Files;
+
+:Upload to IPFS\nreturns deliverable CID;
+
+:Store deliverable\nCID in DB;
+
+:Status = SUBMITTED;
+
+:Client Notified\nViews Deliverable;
+
+:Client Reviews\nDownload from IPFS;
+
+if (Approve?) then (Yes)
+    :On-chain Payment\nRelease Smart Contract;
+    :ETH Transferred\nEscrow to Freelancer;
+    :Status = PAID;
+    
+    if (All Milestones\nComplete?) then (Yes)
+        :Status = COMPLETED;
+        stop
+    else (No)
+        :Next Milestone;
+    endif
+    
+else (No)
+    :Request Revision\nAdd Feedback;
+    -left-> :Submit New Deliverable;
+endif
+
+@enduml

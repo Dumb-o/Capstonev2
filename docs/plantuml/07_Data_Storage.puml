@@ -1,0 +1,77 @@
+@startuml Data_Storage_Strategy
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title FreeLedger Data Storage Strategy
+
+package "On-Chain (Ethereum)" {
+    rectangle "Smart Contract Storage" {
+        [Contract ID\n(bytes32)] as C_ID
+        [Terms CID\n(bytes32)] as T_CID
+        [Client Address\n(address)] as C_ADDR
+        [Freelancer Address\n(address)] as F_ADDR
+        [Escrow Balance\n(uint256)] as ESCROW
+        [Milestone Status\n(enum)] as M_STATUS
+        [Deadline\n(timestamp)] as DEADLINE
+    }
+}
+
+package "IPFS (Kubo Node)" {
+    rectangle "Contract Terms (Public)" {
+        [JSON Metadata\nQmXyz...] as IPFS_TERMS
+    }
+    rectangle "Deliverables (Private)" {
+        [Files + Metadata\nQmAbc...] as IPFS_DELIV
+    }
+}
+
+package "PostgreSQL (Metadata)" {
+    rectangle "Users Table" {
+        [id (UUID)] as U_ID
+        [pseudonymous_id] as U_PSEUDO
+        [display_name] as U_NAME
+        [role] as U_ROLE
+    }
+    rectangle "Contracts Table" {
+        [id (UUID)] as CON_ID
+        [pseudonymous_id] as CON_PSEUDO
+        [terms_cid] as CON_CID
+        [client_pseudonym] as CON_CLIENT
+        [freelancer_pseudonym] as CON_FREELANCER
+        [total_value] as CON_VALUE
+        [status] as CON_STATUS
+    }
+    rectangle "Milestones Table" {
+        [id (UUID)] as M_ID
+        [contract_id (FK)] as M_CON
+        [milestone_index] as M_IDX
+        [deliverable_cid] as M_CID
+        [amount] as M_AMT
+        [deadline] as M_DEAD
+        [status] as M_STAT
+    }
+}
+
+package "Redis (Session)" {
+    rectangle "Session Data" {
+        [wallet: "0xABC..."] as S_WALLET
+        [role] as S_ROLE
+        [user_pseudonym] as S_PSEUDO
+        [expiresAt] as S_EXP
+    }
+}
+
+' Connections showing data flow
+IPFS_TERMS --> C_ID : "CID Reference"
+IPFS_DELIV --> M_ID : "CID Reference"
+U_PSEUDO --> CON_CLIENT : "Reference"
+U_PSEUDO --> CON_FREELANCER : "Reference"
+CON_PSEUDO --> M_CON : "Reference"
+S_PSEUDO --> U_PSEUDO : "Maps to"
+
+' Styling
+skinparam rectangle {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+}
+@enduml
