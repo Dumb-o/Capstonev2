@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { getStoredUser, isConnected, fetchCurrentUser, logout as authLogout } from '../services/auth';
+import { fetchUnreadCount } from '../services/notifications';
 
 const AppContext = createContext();
 
@@ -9,7 +10,9 @@ const initialState = {
   loading: true,
   walletAddress: null,
   contracts: [],
-  notifications: [],
+  toastNotifications: [],
+  bellNotifications: [],
+  unreadCount: 0,
 };
 
 function reducer(state, action) {
@@ -17,20 +20,28 @@ function reducer(state, action) {
     case 'SET_USER':
       return { ...state, user: action.payload, isAuthenticated: true, loading: false };
     case 'CLEAR_USER':
-      return { ...state, user: null, isAuthenticated: false, loading: false };
+      return { ...state, user: null, isAuthenticated: false, loading: false, bellNotifications: [], unreadCount: 0 };
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
     case 'SET_WALLET':
       return { ...state, walletAddress: action.payload };
     case 'SET_CONTRACTS':
       return { ...state, contracts: action.payload };
-    case 'ADD_NOTIFICATION':
-      return { ...state, notifications: [...state.notifications, action.payload] };
-    case 'REMOVE_NOTIFICATION':
+    case 'ADD_TOAST':
+      return { ...state, toastNotifications: [...state.toastNotifications, action.payload] };
+    case 'REMOVE_TOAST':
       return {
         ...state,
-        notifications: state.notifications.filter((_, i) => i !== action.payload),
+        toastNotifications: state.toastNotifications.filter((_, i) => i !== action.payload),
       };
+    case 'SET_BELL_NOTIFICATIONS':
+      return { ...state, bellNotifications: action.payload };
+    case 'ADD_BELL_NOTIFICATION':
+      return { ...state, bellNotifications: [action.payload, ...state.bellNotifications] };
+    case 'SET_UNREAD_COUNT':
+      return { ...state, unreadCount: action.payload };
+    case 'CLEAR_BELL':
+      return { ...state, bellNotifications: [], unreadCount: 0 };
     default:
       return state;
   }

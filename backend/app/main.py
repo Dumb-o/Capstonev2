@@ -2,20 +2,36 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from jose import JWTError, jwt
 
 from app.config import settings
 from app.database import init_db
 from app.middleware.rate_limit import RateLimitMiddleware
+from app.middleware.timing import TimingMiddleware
 from app.redis_client import close_redis, init_redis
-from app.routers import admin, auth, contracts, disputes, ipfs, jobs, messages, proposals, recommendations, users
+from app.routers import (
+    admin,
+    auth,
+    contracts,
+    disputes,
+    ipfs,
+    jobs,
+    messages,
+    notifications,
+    proposals,
+    recommendations,
+    users,
+)
 from app.services.event_listener import start_event_listener
+from app.services.ipfs_monitor import start_ipfs_monitor
 from app.services.repin_service import start_repin_service
 from app.utils.error_codes import ErrorCodes
+from app.websocket_manager import manager
 
 logger = logging.getLogger("freeledger.main")
 
@@ -49,6 +65,7 @@ async def lifespan(app: FastAPI):
     if settings.client_private_key:
         start_event_listener()
     start_repin_service()
+    start_ipfs_monitor()
     yield
     await close_redis()
 
@@ -114,6 +131,7 @@ app.add_middleware(
 )
 
 app.add_middleware(RateLimitMiddleware)
+app.add_middleware(TimingMiddleware)
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
@@ -124,7 +142,34 @@ app.include_router(disputes.router, prefix="/api")
 app.include_router(ipfs.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(messages.router, prefix="/api")
+app.include_router(notifications.router, prefix="/api")
 app.include_router(recommendations.router, prefix="/api")
+
+
+@app.websocket("/ws/messages/{user_id}")
+async def websocket_messages(websocket: WebSocket, user_id: str, token: str = Query(...)):
+    try:
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+        token_user_id: str = payload.get("sub")
+        if token_user_id != user_id:
+            await websocket.close(code=4001)
+            return
+    except JWTError:
+        await websocket.close(code=4001)
+        return
+
+    await manager.connect(websocket, user_id)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
+
+
+@app.get("/api/metrics")
+async def metrics():
+    from app.middleware.timing import get_metrics
+    return get_metrics()
 
 
 @app.get("/api/health")

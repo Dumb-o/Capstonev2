@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     blockchain_timeout: int = 30
     blockchain_tx_timeout: int = 120
     log_level: str = "DEBUG"
+    event_listener_heartbeat_timeout: int = 30
+    event_listener_stale_timeout: int = 90
+    ipfs_monitor_interval: int = 30
+    ipfs_degraded_threshold: int = 2
+    ipfs_down_threshold: int = 4
 
     class Config:
         env_file = ".env"

@@ -75,7 +75,7 @@
 | 3 | MB-016 | Freelancer directory frontend | 1.5 days | FR-21, FR-22, UI-06 |
 | 4 | MB-018 | People you may know endpoint | 0.5 day | FR-23 |
 | 5 | MB-019 | Proposal-to-message auto-thread | 0.5 day | UI-08 |
-| 6 | MB-020 | Enhanced chat UI | 1 day | UI-07 |
+| 6 | MB-020 | Enhanced chat UI | 1 day | UI-07 | ✅ |
 
 ---
 

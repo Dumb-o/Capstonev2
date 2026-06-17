@@ -3,21 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import Navbar from '../components/shared/Navbar';
 import { useApp } from '../context/AppContext';
 import api from '../services/api';
-
-function timeAgo(dateStr) {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diff = Math.max(0, now - then);
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString();
-}
+import WebSocketClient from '../services/websocket';
+import config from '../config';
+import { timeAgo } from '../utils/timeAgo';
 
 export default function MessagesPage() {
   const { state } = useApp();
@@ -35,6 +23,19 @@ export default function MessagesPage() {
   const [userSearchResults, setUserSearchResults] = useState([]);
   const [userSearchLoading, setUserSearchLoading] = useState(false);
   const messagesEnd = useRef(null);
+  const messagesContainer = useRef(null);
+  const prevMessagesLen = useRef(0);
+  const isNearBottom = useRef(true);
+  const wsRef = useRef(null);
+  const pollingRef = useRef(null);
+  const [wsConnected, setWsConnected] = useState(false);
+
+  const activeChatRef = useRef(activeChat);
+  activeChatRef.current = activeChat;
+  const allConversationsRef = useRef(allConversations);
+  allConversationsRef.current = allConversations;
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   useEffect(() => {
     async function load() {
@@ -49,11 +50,102 @@ export default function MessagesPage() {
   }, []);
 
   useEffect(() => {
+    const user = state.user;
+    if (!user) return;
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
+    const wsBase = config.wsUrl || 'ws://localhost:8000';
+    const client = new WebSocketClient(user.id, token, { baseUrl: wsBase });
+
+    client.on('connected', () => {
+      setWsConnected(true);
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    });
+
+    client.on('disconnected', () => {
+      setWsConnected(false);
+      if (!pollingRef.current) {
+        startPollingFallback();
+      }
+    });
+
+    client.on('NEW_MESSAGE', (event) => {
+      const msg = event.message;
+      if (!msg) return;
+      const active = activeChatRef.current;
+
+      const otherUserId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
+
+      setMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        if (active && otherUserId === active.id) {
+          return [...prev, msg];
+        }
+        return prev;
+      });
+
+      setAllConversations(prev => {
+        const existing = prev.find(c => c.user.id === otherUserId);
+        if (existing) {
+          const isActive = active && otherUserId === active.id;
+          const updated = prev.map(c =>
+            c.user.id === otherUserId
+              ? { ...c, last_message: msg, unread: isActive ? c.unread : (c.unread || 0) + 1 }
+              : c
+          );
+          updated.sort((a, b) => new Date(b.last_message?.created_at || 0) - new Date(a.last_message?.created_at || 0));
+          return updated;
+        }
+        api.get(`/users/${otherUserId}`).then(({ data: otherUser }) => {
+          setAllConversations(prev2 => {
+            if (prev2.some(c => c.user.id === otherUserId)) return prev2;
+            return [{ user: otherUser, last_message: msg, unread: 1 }, ...prev2];
+          });
+        }).catch(() => {});
+        return prev;
+      });
+    });
+
+    client.connect();
+    wsRef.current = client;
+
+    return () => {
+      client.disconnect();
+      wsRef.current = null;
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [state.user]);
+
+  const startPollingFallback = useCallback(() => {
+    if (pollingRef.current) return;
+    pollingRef.current = setInterval(async () => {
+      try {
+        const { data } = await api.get('/messages/conversations');
+        setAllConversations(data || []);
+        setConversations(data || []);
+        const active = activeChatRef.current;
+        if (active) {
+          const { data: msgData } = await api.get(`/messages/conversations/${active.id}`);
+          setMessages(msgData.messages || []);
+        }
+      } catch {}
+    }, 5000);
+  }, []);
+
+  useEffect(() => {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       setConversations(allConversations.filter(c =>
         (c.user.username || '').toLowerCase().includes(q) ||
-        (c.user.headline || '').toLowerCase().includes(q)
+        (c.user.headline || '').toLowerCase().includes(q) ||
+        (c.last_message?.content || '').toLowerCase().includes(q)
       ));
     } else {
       setConversations(allConversations);
@@ -80,8 +172,21 @@ export default function MessagesPage() {
   }, [activeChat]);
 
   useEffect(() => {
-    messagesEnd.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > prevMessagesLen.current && isNearBottom.current) {
+      messagesEnd.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    if (messages.length > 0 && prevMessagesLen.current === 0) {
+      messagesEnd.current?.scrollIntoView({ behavior: 'auto' });
+    }
+    prevMessagesLen.current = messages.length;
   }, [messages]);
+
+  const handleScroll = useCallback(() => {
+    const el = messagesContainer.current;
+    if (!el) return;
+    const threshold = 100;
+    isNearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+  }, []);
 
   const searchUsers = async (q) => {
     if (!q.trim()) return;
@@ -115,7 +220,7 @@ export default function MessagesPage() {
         receiver_id: activeChat.id,
         content: newMessage,
       });
-      setMessages([...messages, data]);
+      setMessages(prev => prev.some(m => m.id === data.id) ? prev : [...prev, data]);
       setNewMessage('');
       setAllConversations(prev => {
         const updated = prev.map(c =>
@@ -127,7 +232,7 @@ export default function MessagesPage() {
         return updated;
       });
     } catch {}
-  }, [newMessage, activeChat, messages]);
+  }, [newMessage, activeChat]);
 
   return (
     <div className="app-layout">
@@ -157,7 +262,7 @@ export default function MessagesPage() {
             conversations.map((conv) => (
               <div
                 key={conv.user.id}
-                className={`conv-item ${activeChat?.id === conv.user.id ? 'active' : ''}`}
+                className={`conv-item ${activeChat?.id === conv.user.id ? 'active' : ''} ${conv.unread > 0 ? 'unread' : ''}`}
                 onClick={() => { setActiveChat(conv.user); setMobileOpen(true); }}
               >
                 <div className="conv-avatar" style={{ background: 'linear-gradient(135deg, var(--blue), var(--blue-light))' }}>
@@ -174,7 +279,8 @@ export default function MessagesPage() {
                     {conv.last_message?.content?.slice(0, 60) || 'No messages yet'}
                   </div>
                 </div>
-                {conv.unread > 0 && <span className="unread-badge">{conv.unread}</span>}
+                {conv.unread > 1 && <span className="unread-badge">{conv.unread}</span>}
+                {conv.unread === 1 && <span className="unread-dot" />}
               </div>
             ))
           )}
@@ -196,9 +302,9 @@ export default function MessagesPage() {
                 </div>
               </div>
             </div>
-            <div className="chat-messages">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`msg ${msg.sender_id === state.user?.id ? 'outgoing' : 'incoming'}`}>
+            <div className="chat-messages" ref={messagesContainer} onScroll={handleScroll}>
+              {messages.map((msg, idx) => (
+                <div key={msg.id} className={`msg ${msg.sender_id === state.user?.id ? 'outgoing' : 'incoming'} ${idx === messages.length - 1 && prevMessagesLen.current > 0 && msg.sender_id !== state.user?.id ? 'msg-new' : ''}`}>
                   <div className="msg-bubble">
                     {msg.content.startsWith('submitted a proposal') || msg.content.includes('submitted a proposal') ? (
                       <span style={{ fontStyle: 'italic', opacity: 0.85 }}>{msg.content}</span>
@@ -228,11 +334,16 @@ export default function MessagesPage() {
             </div>
           </>
         ) : (
-          <div className="chat-empty">
-            <div className="chat-empty-icon">💬</div>
-            <h3>Your Messages</h3>
-            <p>Select a conversation to start chatting</p>
-          </div>
+            <div className="chat-empty">
+              <div className="chat-empty-icon">💬</div>
+              <h3>Your Messages</h3>
+              <p>Select a conversation to start chatting</p>
+              {!wsConnected && (
+                <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8 }}>
+                  Connecting to real-time updates...
+                </p>
+              )}
+            </div>
         )}
       </div>
 

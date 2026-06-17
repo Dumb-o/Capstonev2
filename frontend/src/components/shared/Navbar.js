@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
+import NotificationBell from '../notifications/NotificationBell';
 
 export default function Navbar() {
   const { state, logout } = useApp();
@@ -50,12 +51,12 @@ export default function Navbar() {
           <Link to="/jobs" className={location.pathname.startsWith('/jobs') ? 'active' : ''}>{isClient ? 'Explore Jobs' : 'Find Jobs'}</Link>
           <Link to="/contracts" className={location.pathname.startsWith('/contracts') ? 'active' : ''}>Contracts</Link>
           <Link to="/messages" className={location.pathname === '/messages' ? 'active' : ''}>Messages</Link>
-          {isAdmin && <Link to="/admin" className={location.pathname === '/admin' ? 'active' : ''}>Admin</Link>}
         </div>
       </div>
       <div className="dash-nav-right">
         {state.isAuthenticated && (
           <>
+            <NotificationBell />
             <Link to="/profile" className="user-chip" style={{ textDecoration: 'none' }}>
               <div className="user-info">
                 <div className="uname">{state.user?.username || state.walletAddress?.slice(0, 6)}</div>

@@ -8,6 +8,7 @@ from app.middleware.auth import get_current_user
 from app.models.models import Contract, ContractStatus, Dispute, DisputeStatus, User
 from app.schemas.schemas import DisputeCreate, DisputeResponse
 from app.services.blockchain_service import raise_dispute_on_chain
+from app.services.notification_service import NotificationService
 from app.utils.error_codes import ErrorCodes
 from app.utils.exceptions import AuthorizationError, NotFoundError, ValidationError
 from app.utils.helpers import pagination_params
@@ -50,6 +51,13 @@ async def create_dispute(
             contract_id=contract.on_chain_id,
             initiator_private_key=pk,
         )
+
+    other_id = contract.freelancer_id if current_user.id == contract.client_id else contract.client_id
+    await NotificationService.create(
+        db, other_id, "dispute",
+        "Dispute raised",
+        f"A dispute has been raised on contract: {contract.title}",
+    )
 
     return DisputeResponse.model_validate(dispute)
 

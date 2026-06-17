@@ -14,7 +14,8 @@
   "scripts": {
     "postinstall": "patch-package",
     "start": "react-scripts start",
-    "start:admin": "PORT=3001 REACT_APP_ADMIN_MODE=true react-scripts start",
+    "start:admin": "cross-env PORT=3001 REACT_APP_ADMIN_MODE=true react-scripts start",
+    "build:admin": "cross-env REACT_APP_ADMIN_MODE=true react-scripts build",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -35,6 +36,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "cross-env": "^7.0.3",
     "patch-package": "^8.0.1"
   }
 }

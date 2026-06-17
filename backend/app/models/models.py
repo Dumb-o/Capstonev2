@@ -107,6 +107,7 @@ class User(Base):
     proposals = relationship("Proposal", back_populates="freelancer", foreign_keys="Proposal.freelancer_id")
     sent_messages = relationship("Message", back_populates="sender", foreign_keys="Message.sender_id")
     received_messages = relationship("Message", back_populates="receiver", foreign_keys="Message.receiver_id")
+    notifications = relationship("Notification", back_populates="user", foreign_keys="Notification.user_id")
 
 
 class Job(Base):
@@ -213,6 +214,20 @@ class Dispute(Base):
     contract = relationship("Contract", back_populates="dispute")
 
 
+class Thread(Base):
+    __tablename__ = "threads"
+
+    id = Column(String, primary_key=True, default=lambda: generate_pseudonymous_id("thr"))
+    client_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    freelancer_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    job_id = Column(String, ForeignKey("jobs.id"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("client_id", "freelancer_id", "job_id", name="uq_thread_client_freelancer_job"),
+    )
+
+
 class Message(Base):
     __tablename__ = "messages"
 
@@ -221,6 +236,7 @@ class Message(Base):
     receiver_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     content = Column(Text, nullable=False)
     read = Column(Boolean, default=False)
+    thread_id = Column(String, ForeignKey("threads.id"), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     sender = relationship("User", back_populates="sent_messages", foreign_keys=[sender_id])
@@ -228,6 +244,25 @@ class Message(Base):
 
     __table_args__ = (
         Index("idx_messages_conversation", "sender_id", "receiver_id"),
+    )
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(String, primary_key=True, default=lambda: generate_pseudonymous_id("not"))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    type = Column(String(30), nullable=False)
+    title = Column(String(200), nullable=False)
+    body = Column(Text, nullable=True)
+    is_read = Column(Boolean, default=False)
+    metadata_ = Column("metadata", JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="notifications")
+
+    __table_args__ = (
+        Index("idx_notifications_user_read", "user_id", "is_read"),
     )
 
 

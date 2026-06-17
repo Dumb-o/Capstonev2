@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 
@@ -13,6 +14,37 @@ logger = logging.getLogger("freeledger.event_listener")
 POLL_INTERVAL = 5
 START_BLOCK_KEY = "event_listener:last_processed_block"
 event_listener_running = False
+
+_heartbeat: dict = {
+    "last_heartbeat": None,
+    "status": "unknown",
+}
+
+_previous_el_status: str | None = None
+
+
+def get_heartbeat() -> dict:
+    return dict(_heartbeat)
+
+
+async def _update_heartbeat():
+    global _previous_el_status
+    now = datetime.now(timezone.utc)
+    iso = now.isoformat()
+    _heartbeat["last_heartbeat"] = iso
+    _heartbeat["status"] = "active"
+
+    from app.redis_client import redis_client
+    if redis_client is not None:
+        try:
+            await redis_client.set("event_listener:heartbeat", iso)
+        except Exception:
+            pass
+
+    new_status = "active"
+    if _previous_el_status is not None and _previous_el_status != new_status:
+        logger.info("Event listener status changed: %s → %s", _previous_el_status.upper(), new_status.upper())
+    _previous_el_status = new_status
 
 
 def _load_contract_abi() -> dict:
@@ -113,6 +145,7 @@ async def poll_events():
             current_block = w3.eth.block_number
 
             if current_block <= last_block:
+                await _update_heartbeat()
                 await asyncio.sleep(POLL_INTERVAL)
                 continue
 
@@ -152,6 +185,8 @@ async def poll_events():
                         raise
 
             await _set_last_block(redis, current_block)
+
+            await _update_heartbeat()
 
         except Exception as e:
             logger.error("Event listener error: %s", str(e), exc_info=True)

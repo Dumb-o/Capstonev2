@@ -239,6 +239,17 @@ class DisputeResponse(BaseModel):
         from_attributes = True
 
 
+class ThreadResponse(BaseModel):
+    id: str
+    client_id: str
+    freelancer_id: str
+    job_id: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class MessageSend(BaseModel):
     receiver_id: str
     content: SanitizedStr = Field(..., min_length=1, max_length=5000)
@@ -250,6 +261,7 @@ class MessageResponse(BaseModel):
     receiver_id: str
     content: str
     read: bool
+    thread_id: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -283,12 +295,22 @@ class FreelancerRecommendation(BaseModel):
 class RecommendedUserResponse(BaseModel):
     id: str
     username: Optional[str] = None
+    role: str = "freelancer"
     headline: Optional[str] = None
+    skills: list[str] = []
     experience_level: str = "mid"
     industries: list[str] = []
     is_available: bool = True
     portfolio_cids: list[str] = []
-    match_score: float
+    overlap_score: float = 0.0
+    match_score: float = 0.0
+
+
+class PaginatedRecommendedUsers(BaseModel):
+    users: list[RecommendedUserResponse]
+    total: int
+    page: int
+    pages: int
 
 
 class PaginatedContracts(BaseModel):

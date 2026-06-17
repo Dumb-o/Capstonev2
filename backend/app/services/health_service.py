@@ -1,11 +1,12 @@
-import httpx
+from datetime import datetime, timezone
+
 from sqlalchemy import text
 from web3 import Web3
 
 from app.config import settings
 from app.database import async_session_factory
 from app.redis_client import redis_client
-from app.services.event_listener import event_listener_running
+from app.services.event_listener import get_heartbeat as get_listener_heartbeat
 
 
 async def check_database() -> dict:
@@ -28,15 +29,18 @@ async def check_redis() -> dict:
 
 
 async def check_ipfs() -> dict:
-    try:
-        url = f"{settings.ipfs_api_url}/api/v0/version"
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.post(url)
-            response.raise_for_status()
-            data = response.json()
-            return {"status": "ok", "version": data.get("Version", "unknown")}
-    except Exception as e:
-        return {"status": "error", "detail": str(e)}
+    from app.services.ipfs_monitor import get_ipfs_health
+
+    h = get_ipfs_health()
+    status_map = {"healthy": "ok", "degraded": "degraded", "down": "error", "unknown": "unknown"}
+    result = {
+        "status": status_map.get(h["status"], "unknown"),
+        "last_checked": h["last_checked"],
+        "consecutive_failures": h["consecutive_failures"],
+    }
+    if h["version"]:
+        result["version"] = h["version"]
+    return result
 
 
 async def check_blockchain() -> dict:
@@ -54,6 +58,35 @@ async def check_blockchain() -> dict:
 
 
 def check_event_listener() -> dict:
-    if settings.client_private_key:
-        return {"status": "ok" if event_listener_running else "error", "detail": "running" if event_listener_running else "not started"}
-    return {"status": "disabled", "detail": "no private key configured"}
+    if not settings.client_private_key:
+        return {"status": "disabled", "detail": "no private key configured"}
+
+    hb = get_listener_heartbeat()
+    last_hb = hb.get("last_heartbeat")
+
+    if not last_hb:
+        return {"status": "error", "detail": "never started", "last_heartbeat": None, "seconds_since_last_heartbeat": None}
+
+    now = datetime.now(timezone.utc)
+    try:
+        hb_time = datetime.fromisoformat(last_hb)
+        seconds_since = int((now - hb_time).total_seconds())
+    except (ValueError, TypeError):
+        return {"status": "error", "detail": "invalid heartbeat timestamp", "last_heartbeat": last_hb, "seconds_since_last_heartbeat": None}
+
+    if seconds_since <= settings.event_listener_heartbeat_timeout:
+        status = "ok"
+        detail = "active"
+    elif seconds_since <= settings.event_listener_stale_timeout:
+        status = "degraded"
+        detail = "stale"
+    else:
+        status = "error"
+        detail = "dead"
+
+    return {
+        "status": status,
+        "detail": detail,
+        "last_heartbeat": last_hb,
+        "seconds_since_last_heartbeat": seconds_since,
+    }

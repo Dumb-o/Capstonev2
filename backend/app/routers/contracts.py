@@ -15,6 +15,7 @@ from app.schemas.schemas import (
     MilestoneSubmit,
 )
 from app.services import contract_service
+from app.services.notification_service import NotificationService
 from app.utils.error_codes import ErrorCodes
 from app.utils.exceptions import AuthorizationError, NotFoundError, ValidationError
 from app.utils.helpers import pagination_params
@@ -66,6 +67,13 @@ async def create_contract(
         client_id=current_user.id,
         client_wallet=current_user.wallet_address,
     )
+
+    await NotificationService.create(
+        db, data.freelancer_id, "contract",
+        f"New contract: {data.title}",
+        f"A new contract has been created for {data.title} — {data.total_amount} ETH",
+    )
+
     result = await db.execute(
         select(Contract).where(Contract.id == contract.id)
     )
@@ -187,6 +195,15 @@ async def submit_milestone(
         db, contract_id, milestone_index, data.deliverable_cid, data.notes, current_user.id
     )
     await db.flush()
+
+    contract = await db.get(Contract, contract_id)
+    if contract:
+        await NotificationService.create(
+            db, contract.client_id, "milestone",
+            f"Milestone {milestone_index + 1} submitted",
+            f"Milestone {milestone_index + 1} has been submitted for {contract.title}",
+        )
+
     return MilestoneResponse.model_validate(milestone)
 
 
@@ -199,6 +216,15 @@ async def approve_milestone(
 ):
     result = await contract_service.approve_milestone(db, contract_id, milestone_index, current_user.id)
     await db.flush()
+
+    contract = await db.get(Contract, contract_id)
+    if contract:
+        await NotificationService.create(
+            db, contract.freelancer_id, "milestone",
+            f"Milestone {milestone_index + 1} approved",
+            f"Milestone {milestone_index + 1} has been approved for {contract.title}",
+        )
+
     return result["milestone"]
 
 
@@ -214,4 +240,13 @@ async def reject_milestone(
         db, contract_id, milestone_index, data.reason, current_user.id
     )
     await db.flush()
+
+    contract = await db.get(Contract, contract_id)
+    if contract:
+        await NotificationService.create(
+            db, contract.freelancer_id, "milestone",
+            f"Milestone {milestone_index + 1} rejected",
+            f"Milestone {milestone_index + 1} was rejected for {contract.title}. Reason: {data.reason}",
+        )
+
     return MilestoneResponse.model_validate(milestone)

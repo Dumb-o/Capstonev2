@@ -239,16 +239,16 @@
 | **Effort** | 0.5 day |
 | **Acceptance Criteria** | (1) On proposal submit, message thread created. (2) System message reads "[Name] submitted proposal for [Job] — Bid: X ETH". |
 
-### MB-020: Enhanced Chat UI (UI-07)
+### MB-020: Enhanced Chat UI (UI-07) ✅
 
 | Field | Value |
 |---|---|
-| **Description** | Search filters conversations by username, relative timestamps ("2h ago"), unread indicator improvements. |
+| **Description** | Search filters conversations by username, headline, message content; relative timestamps ("2 minutes ago", "1 hour ago", "Yesterday"); unread indicator improvements (bold highlight, dot badge). |
 | **Requirement Links** | UI-07 |
 | **Source** | `freelancer-discovery-design.md` Phase 6 |
 | **Dependencies** | None |
 | **Effort** | 1 day |
-| **Acceptance Criteria** | (1) Search filters conversations. (2) Timestamps shown as relative. (3) Unread indicators clear. |
+| **Acceptance Criteria** | (1) Search filters conversations by name, headline, and message content. (2) Timestamps shown as relative text. (3) Unread indicators clear with bold highlight and dot badge. (4) Auto-scroll works smoothly. |
 
 ---
 

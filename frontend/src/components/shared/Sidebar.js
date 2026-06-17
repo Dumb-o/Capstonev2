@@ -21,7 +21,6 @@ const freelancerLinks = [
 
 const adminLinks = [
   { to: '/dashboard', label: 'Dashboard', icon: '▦' },
-  { to: '/admin', label: 'Admin Panel', icon: '⚙' },
   { to: '/contracts', label: 'All Contracts', icon: '◈' },
   { to: '/messages', label: 'Messages', icon: '✉' },
   { to: '/profile', label: 'Profile', icon: '●' },

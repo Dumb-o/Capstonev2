@@ -61,16 +61,14 @@ test('shows CLIENT PORTAL tag for client role', () => {
   expect(screen.getByText('CLIENT PORTAL')).toBeInTheDocument();
 });
 
-test('shows admin-specific links for admin role', () => {
+test('shows ADMIN PORTAL tag but no admin nav link in client mode', () => {
   mockUseApp.mockReturnValue({
     state: { isAuthenticated: true, user: { username: 'Admin', role: 'admin' } },
     logout: mockLogout,
   });
-  renderWithRouter(<Navbar />, { route: '/admin' });
+  renderWithRouter(<Navbar />, { route: '/dashboard' });
   expect(screen.getByText('ADMIN PORTAL')).toBeInTheDocument();
-  const adminLinks = screen.getAllByText('Admin');
-  expect(adminLinks.length).toBeGreaterThanOrEqual(1);
-  expect(adminLinks[0].closest('a')).toHaveAttribute('href', '/admin');
+  expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
 });
 
 test('shows Post a Job and Browse Freelancers links for client role', () => {

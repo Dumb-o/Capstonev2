@@ -4,6 +4,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import Loading from './components/shared/Loading';
 import Home from './pages/Home';
 import Login from './components/auth/Login';
+import NotificationListener from './components/notifications/NotificationListener';
 import DashboardPage from './pages/DashboardPage';
 import CreateContract from './pages/CreateContract';
 import ContractDetailPage from './pages/ContractDetailPage';
@@ -13,8 +14,9 @@ import JobDetail from './pages/JobDetail';
 import FreelancerDirectory from './pages/FreelancerDirectory';
 import MessagesPage from './pages/Messages';
 import Profile from './pages/Profile';
-import AdminPanel from './pages/AdminPanel';
 import './css/styles.css';
+
+const AdminPanel = React.lazy(() => import('./pages/AdminPanel'));
 
 function ProtectedRoute({ children }) {
   const { state } = useApp();
@@ -46,18 +48,23 @@ function AppRoutes() {
 
   if (isAdminMode) {
     return (
-      <Routes>
-        <Route path="/login" element={state.isAuthenticated && state.user?.role === 'admin' ? <Navigate to="/admin" replace /> : <Login />} />
-        <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
-        <Route path="/" element={<Navigate to="/admin" replace />} />
-        <Route path="*" element={<Navigate to="/admin" replace />} />
-      </Routes>
+      <React.Suspense fallback={<Loading />}>
+        <NotificationListener />
+        <Routes>
+          <Route path="/login" element={state.isAuthenticated && state.user?.role === 'admin' ? <Navigate to="/admin" replace /> : <Login />} />
+          <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+          <Route path="/" element={<Navigate to="/admin" replace />} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Routes>
+      </React.Suspense>
     );
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
+    <>
+      <NotificationListener />
+      <Routes>
+        <Route path="/" element={<Home />} />
       <Route
         path="/login"
         element={state.isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
@@ -98,14 +105,11 @@ function AppRoutes() {
         path="/profile"
         element={<ProtectedRoute><Profile /></ProtectedRoute>}
       />
-      <Route
-        path="/admin"
-        element={<AdminRoute><AdminPanel /></AdminRoute>}
-      />
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-}
+      </Routes>
+    </>
+    );
+  }
 
 export default function App() {
   return (

@@ -1,14 +1,18 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.middleware.auth import get_current_user
 from app.models.models import Message, User
 from app.schemas.schemas import MessageResponse, MessageSend, UserResponse
+from app.services.notification_service import NotificationService
 from app.utils.error_codes import ErrorCodes
 from app.utils.exceptions import NotFoundError, ValidationError
 from app.utils.helpers import pagination_params
+from app.websocket_manager import manager
 
 router = APIRouter(prefix="/messages", tags=["messages"])
 
@@ -69,7 +73,7 @@ async def get_conversations(
             .where(
                 Message.sender_id == other_id,
                 Message.receiver_id == current_user.id,
-                not Message.read,
+                Message.read.is_(False),
             )
         )
 
@@ -106,12 +110,13 @@ async def get_conversation_messages(
     messages = result.scalars().all()
 
     await db.execute(
-        select(Message).where(
+        update(Message).where(
             Message.sender_id == user_id,
             Message.receiver_id == current_user.id,
-            not Message.read,
-        )
+            Message.read.is_(False),
+        ).values(read=True)
     )
+    await db.commit()
 
     return {
         "messages": [MessageResponse.model_validate(m) for m in reversed(messages)],
@@ -138,4 +143,25 @@ async def send_message(
     )
     db.add(msg)
     await db.flush()
+    await db.commit()
+
+    msg_data = MessageResponse.model_validate(msg).model_dump(mode="json")
+    event = {
+        "type": "NEW_MESSAGE",
+        "thread_id": msg.thread_id,
+        "message": msg_data,
+    }
+    asyncio.create_task(manager.broadcast_event(
+        current_user.id, data.receiver_id, event
+    ))
+    asyncio.create_task(manager.publish_to_redis(event))
+
+    asyncio.create_task(
+        NotificationService.create(
+            db, data.receiver_id, "message",
+            f"New message from {current_user.username or 'someone'}",
+            data.content[:200],
+        )
+    )
+
     return MessageResponse.model_validate(msg)

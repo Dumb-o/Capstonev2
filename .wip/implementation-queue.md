@@ -3,7 +3,7 @@
 > Ordered by safety: build blockers → startup blockers → critical bugs → requirement gaps → NFRs → tests → docs
 > Date: June 17, 2026
 > Source: `.wip/master-backlog.md`, `.wip/master-requirements.md`, `.wip/startup-report.md`
-> Status: Planning complete — ready for execution
+> Status: Queues 01–24 ✅ Done — Queues 25–35 pending/stretch
 
 ---
 
@@ -17,7 +17,7 @@ Tier 4: Documentation Fixes ── [Queue-08 → Queue-11] ✅ Done
 Tier 5: Security ───────────── [Queue-12, Queue-13] ✅ Done
 Tier 6: Infrastructure ─────── [Queue-14, Queue-15, Queue-34, Queue-35] ✅ Done
 Tier 7: Tests ──────────────── [Queue-16, Queue-17, Queue-18] ✅ Done
-Tier 8: Feature Gaps ───────── [Queue-19 → Queue-24]
+Tier 8: Feature Gaps ───────── [Queue-19 → Queue-24] ✅ Done
 Tier 9: Stretch ────────────── [Queue-25 → Queue-30]
 Tier 10: Documentation ─────── [Queue-31 → Queue-33]
 ```
@@ -436,16 +436,16 @@ Each queue item includes:
 ### Queue-21: Implement Freelancer Directory Frontend (MB-016)
 
 || Field | Value |
-|---|---|
+|---|---|---|
 || **Backlog ID** | MB-016 |
 | **Requirement** | UI-07 |
 | **Priority** | LOW — UX polish |
 | **Reason** | Chat UI lacks search filter, relative timestamps, clear unread indicators |
 | **Effort** | 1 day |
-| **Scope** | `frontend/src/components/Messages/` — add conversation search filter by username, replace absolute timestamps with relative ("2h ago"), improve unread indicator styling |
-| **Success** | (1) Search filters conversations. (2) Timestamps shown as relative. (3) Unread indicators clear and distinguishable. |
+| **Scope** | `frontend/src/pages/Messages.js`, `frontend/src/utils/timeAgo.js`, `frontend/src/css/styles.css` — add conversation search by username, headline, and message content; replace timestamps with relative ("2 minutes ago"); improve unread indicators with bold highlight and dot badge; auto-scroll improvements; new message highlight animation |
+| **Success** | (1) Search filters conversations by name, headline, and message content. (2) Timestamps shown as relative text ("just now", "3 minutes ago", "1 hour ago", "Yesterday"). (3) Unread indicators clear: bold highlight, dot for single unread, badge for 2+. (4) Auto-scroll works smoothly, preserves position when scrolled up. |
 | **Depends on** | None |
-| **Status** | Pending |
+| **Status** | ✅ Done — Enhanced chat UI implemented (search, relative timestamps, unread indicators, scroll improvements). |
 
 ---
 
@@ -609,10 +609,10 @@ Each queue item includes:
 | 18 | MB-028 | Smart contract edge case tests | 0.5 day | — | ✅ Done |
 || 19 | MB-017 | Add user model fields | 0.5 day | 10 | ✅ Done |
 || 20 | MB-015 | Freelancer directory backend | 1 day | 19 | ✅ Done |
-|| 21 | MB-016 | Freelancer directory frontend | 1.5 days | 20 | Pending |
-| 22 | MB-018 | People you may know endpoint | 0.5 day | 20 | Pending |
-| 23 | MB-019 | Proposal-to-message auto-thread | 0.5 day | — | Pending |
-| 24 | MB-020 | Enhanced chat UI | 1 day | — | Pending |
+|| 21 | MB-016 | Freelancer directory frontend | 1.5 days | 20 | ✅ Done |
+| 22 | MB-018 | People you may know endpoint | 0.5 day | 20 | ✅ Done |
+| 23 | MB-019 | Proposal-to-message auto-thread | 0.5 day | — | ✅ Done |
+| 24 | MB-020 | Enhanced chat UI | 1 day | — | ✅ Done |
 | 25 | MB-023 | Real-time messaging | 2 days | 16 | Pending |
 | 26 | MB-024 | Notifications system | 2 days | 25 | Pending |
 | 27 | MB-025 | API response time monitoring | 0.5 day | — | Pending |
@@ -623,7 +623,7 @@ Each queue item includes:
 | 32 | MB-007 | Update sprint plan documentation | 2 hours | 04, 08, 10 | Pending |
 | 33 | MB-030 | Write deployment guide | 1 day | 14 | Pending |
 
-**Total remaining effort**: ~10-12 developer-days (Queue-04 through Queue-20 completed; Queue-21 through Queue-33 remaining)
+**Total remaining effort**: ~7-9 developer-days (Queues 01–24 ✅ Done; Queues 25–33 remaining: 25, 26, 27, 28, 29, 30, 32, 33)
 
 ---
 
@@ -674,8 +674,9 @@ Each queue item is tagged to its target sprint from `.wip/master-sprint.md`. Ite
 | Sprint 1 | Documentation Integrity & Security | Queue-08 ✅, Queue-09 ✅, Queue-10 ✅, Queue-12 ✅, Queue-04 ✅, Queue-32 | [docs] [security] |
 | Sprint 2 | User-Facing Fixes & Infrastructure | Queue-05 ✅, Queue-06 ✅, Queue-11 ✅, Queue-07 ✅, Queue-14 ✅, Queue-15 ✅, Queue-34 ✅, Queue-35 ✅ | [frontend] [backend] [infra] |
 | Sprint 3 | Testing Core | Queue-13 ✅, Queue-16 ✅, Queue-17 ✅, Queue-18 ✅, Queue-27, Queue-28, Queue-29, Queue-30 | [test] [backend] [contracts] |
-|| Sprint 4 | Freelancer Discovery | Queue-19 ✅, Queue-20 ✅, Queue-21 ✅, Queue-22 ✅, Queue-23, Queue-24 | [backend] [frontend] |
+|| Sprint 4 | Freelancer Discovery | Queue-19 ✅, Queue-20 ✅, Queue-21 ✅, Queue-22 ✅, Queue-23 ✅, Queue-24 ✅ | [backend] [frontend] |
 | Sprint 5 | Stretch & Polish | Queue-25, Queue-26, Queue-31 ✅, Queue-33 | [backend] [frontend] [docs] |
+| Sprint 6 | Documentation Reconciliation | Queue-32 | [docs] |
 
 Queue-01, Queue-02, Queue-03 are ✅ Done — completed before sprint execution began.
 
@@ -724,7 +725,7 @@ Step 14: Queue-14 (MB-009) — frontend Dockerfile         1 day    [infra] ✅
 Step 15: Queue-15 (MB-012) — cleanup frontend trees      1 day    [frontend][infra] ✅
 ```
 
-### Phase C: Tests — ✅ ALL DONE
+### Phase C: Tests (stretch pending)
 
 ```
 Step 16: Queue-18 (MB-028) — contract edge case tests    0.5 day  [contracts] ✅
@@ -736,24 +737,33 @@ Step 21: Queue-16 (MB-005) — backend service tests       3 days   [test] ✅
 Step 22: Queue-17 (MB-004) — frontend component tests   1.5 days  [test][frontend] ✅
 ```
 
-### Phase D: Feature Gaps
+### Phase D: Feature Gaps — ✅ ALL DONE
 
 ```
 Step 23: Queue-19 (MB-017) — user model fields          0.5 day   [backend] ✅
 Step 24: Queue-20 (MB-015) — freelancer backend          1 day    [backend] ✅
-Step 25: Queue-21 (MB-016) — freelancer frontend        1.5 days  [frontend]
+Step 25: Queue-21 (MB-016) — freelancer frontend        1.5 days  [frontend] ✅
 Step 26: Queue-22 (MB-018) — people you may know        0.5 day   [backend] ✅
-Step 27: Queue-23 (MB-019) — proposal→message thread    0.5 day   [backend]
-Step 28: Queue-24 (MB-020) — enhanced chat UI            1 day    [frontend]
+Step 27: Queue-23 (MB-019) — proposal→message thread    0.5 day   [backend] ✅
+Step 28: Queue-24 (MB-020) — enhanced chat UI            1 day    [frontend] ✅
 ```
 
-### Phase E: Stretch & Polish
+### Phase E: Documentation Reconciliation
 
 ```
-Step 29: Queue-25 (MB-023) — real-time messaging         2 days   [backend][frontend]
-Step 30: Queue-26 (MB-024) — notifications system        2 days   [backend][frontend]
-Step 31: Queue-32 (MB-007) — update sprint plan docs     2 hrs    [docs]
+Step 29: Queue-32 (MB-007) — update sprint plan docs     2 hrs    [docs] ✅
+```
+
+### Phase F: Stretch & Polish
+
+```
+Step 30: Queue-25 (MB-023) — real-time messaging         2 days   [backend][frontend]
+Step 31: Queue-26 (MB-024) — notifications system        2 days   [backend][frontend]
 Step 32: Queue-33 (MB-030) — deployment guide            1 day    [docs]
+Step 33: Queue-27 (MB-025) — API response monitoring     0.5 day  [backend][test]
+Step 34: Queue-28 (MB-026) — IPFS monitoring             0.5 day  [backend][test]
+Step 35: Queue-29 (MB-027) — event listener health       0.5 day  [backend][test]
+Step 36: Queue-30 (MB-029) — JWT rotation support        0.5 day  [backend][security]
 ```
 
-**Total remaining**: ~11-13 developer-days across 13 pending steps (Queues 20-33, excluding 31).
+**Total remaining**: ~7-9 developer-days across 8 pending steps (Queues 25-30, 33).

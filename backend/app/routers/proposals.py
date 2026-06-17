@@ -4,8 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.middleware.auth import get_current_user
-from app.models.models import Contract, ContractMilestone, ContractStatus, Job, Message, Proposal, User
+from app.models.models import Contract, ContractMilestone, ContractStatus, Job, Proposal, User
 from app.schemas.schemas import ProposalCreate, ProposalResponse
+from app.services.message_service import MessageService
+from app.services.notification_service import NotificationService
 from app.utils.error_codes import ErrorCodes
 from app.utils.exceptions import AuthorizationError, NotFoundError, ValidationError
 from app.utils.helpers import pagination_params
@@ -67,13 +69,24 @@ async def create_proposal(
     db.add(proposal)
     await db.flush()
 
-    msg = Message(
+    thread = await MessageService.get_or_create_thread(
+        db, client_id=job.client_id, freelancer_id=current_user.id, job_id=job.id
+    )
+    freelancer_name = current_user.username or "A freelancer"
+    job_title = job.title or "a job"
+    await MessageService.send_system_message(
+        db,
+        thread=thread,
         sender_id=current_user.id,
         receiver_id=job.client_id,
-        content=f"{current_user.username or current_user.id[:8]} submitted a proposal for {job.title} — Bid: {data.bid_amount} ETH",
+        content=f"{freelancer_name} submitted a proposal for {job_title} — Bid: {data.bid_amount} ETH",
     )
-    db.add(msg)
-    await db.flush()
+
+    await NotificationService.create(
+        db, job.client_id, "proposal",
+        f"New proposal from {freelancer_name}",
+        f"{freelancer_name} submitted a proposal for {job_title} — Bid: {data.bid_amount} ETH",
+    )
 
     enriched = await _enrich_proposals(db, [proposal])
     return enriched[0]

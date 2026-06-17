@@ -36,6 +36,7 @@ from app.schemas.schemas import (
 )
 from app.services.auth_service import hash_password
 from app.services.blockchain_service import resolve_dispute_on_chain
+from app.services.notification_service import NotificationService
 from app.utils.error_codes import ErrorCodes
 from app.utils.exceptions import NotFoundError, ValidationError
 from app.utils.helpers import pagination_params
@@ -503,6 +504,14 @@ async def resolve_dispute(
         dispute.contract.status = ContractStatus.completed
 
     await db.flush()
+
+    for uid in [dispute.contract.client_id, dispute.contract.freelancer_id]:
+        await NotificationService.create(
+            db, uid, "dispute",
+            "Dispute resolved",
+            f"The dispute on {dispute.contract.title} has been resolved. Decision: {decision.value}",
+        )
+
     return DisputeResponse.model_validate(dispute)
 
 
