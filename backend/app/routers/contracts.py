@@ -68,11 +68,12 @@ async def create_contract(
         client_wallet=current_user.wallet_address,
     )
 
-    await NotificationService.create(
-        db, data.freelancer_id, "contract",
-        f"New contract: {data.title}",
-        f"A new contract has been created for {data.title} — {data.total_amount} ETH",
-    )
+    if data.freelancer_id:
+        await NotificationService.create(
+            db, data.freelancer_id, "contract",
+            f"New contract: {data.title}",
+            f"A new contract has been created for {data.title} — {data.total_amount} ETH",
+        )
 
     result = await db.execute(
         select(Contract).where(Contract.id == contract.id)

@@ -26,4 +26,4 @@ echo "Running migrations..."
 alembic upgrade head 2>&1 || echo "Warning: migrations failed (tables may already exist, init_db will handle them)"
 
 echo "Starting uvicorn..."
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level trace

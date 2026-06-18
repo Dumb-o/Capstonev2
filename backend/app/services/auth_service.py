@@ -58,11 +58,13 @@ def create_refresh_token(user_id: str) -> str:
 
 def decode_token(token: str) -> dict | None:
     from jose import JWTError
-    try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
-        return payload
-    except JWTError:
-        return None
+    secrets_to_try = [settings.jwt_secret] + settings.jwt_secrets
+    for secret in secrets_to_try:
+        try:
+            return jwt.decode(token, secret, algorithms=[settings.jwt_algorithm])
+        except JWTError:
+            continue
+    return None
 
 
 async def store_nonce(address: str, nonce: str) -> None:

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
 import { useApp } from '../context/AppContext';
 import Toast from '../components/shared/Toast';
+import UserSearchSelect from '../components/admin/UserSearchSelect';
 
 const tabs = ['dashboard', 'users', 'jobs', 'proposals', 'contracts', 'disputes', 'messages'];
 const LIMIT = 20;
@@ -28,8 +29,24 @@ export default function AdminPanel() {
   const [editModal, setEditModal] = useState({ open: false, type: '', item: null });
   const [deleteModal, setDeleteModal] = useState({ open: false, type: '', id: null });
   const [editForm, setEditForm] = useState({});
+  const [userCache, setUserCache] = useState({});
+  const userCacheRef = useRef({});
 
   const showToast = useCallback((message, type = 'info') => setToast({ message, type }), []);
+
+  const resolveUserNames = useCallback(async (msgs) => {
+    const ids = new Set();
+    msgs.forEach(m => { if (m.sender_id) ids.add(m.sender_id); if (m.receiver_id) ids.add(m.receiver_id); });
+    const missing = [...ids].filter(id => !userCacheRef.current[id]);
+    if (missing.length === 0) return;
+    try {
+      const { data } = await api.get(`/admin/users?limit=${Math.min(missing.length + 5, 100)}`);
+      const map = { ...userCacheRef.current };
+      (data.users || []).forEach(u => { map[u.id] = u; });
+      userCacheRef.current = map;
+      setUserCache(map);
+    } catch {}
+  }, []);
 
   const loadTabData = useCallback(async (t, pageNum = 1, filterVal = '') => {
     const params = new URLSearchParams({ page: String(pageNum), limit: String(LIMIT) });
@@ -57,10 +74,11 @@ export default function AdminPanel() {
       if (msgsRes?.data?.messages) {
         setMessages(msgsRes.data.messages);
         setTotalPages(prev => ({ ...prev, messages: msgsRes.data.pages || 1 }));
+        resolveUserNames(msgsRes.data.messages);
       }
     } catch {}
     setLoading(false);
-  }, []);
+  }, [resolveUserNames]);
 
   const loadEntities = useCallback(async (t) => {
     const p = page[t] || 1;
@@ -70,6 +88,7 @@ export default function AdminPanel() {
     const key = t === 'users' ? 'users' : t;
     const setter = { users: setUsers, jobs: setJobs, proposals: setProposals, contracts: setContracts, disputes: setDisputes, messages: setMessages };
     if (setter[t]) setter[t](data[key] || []);
+    if (t === 'messages') resolveUserNames(data[key] || []);
     setTotalPages(prev => ({ ...prev, [t]: data.pages || 1 }));
   }, [page, filters, loadTabData]);
 
@@ -131,6 +150,7 @@ export default function AdminPanel() {
     if (type === 'jobs') { form.client_id = ''; form.title = ''; form.budget = ''; form.category = ''; form.description = ''; }
     if (type === 'proposals') { form.job_id = ''; form.freelancer_id = ''; form.bid_amount = ''; form.cover_letter = ''; }
     if (type === 'contracts') { form.client_id = ''; form.freelancer_id = ''; form.title = ''; form.total_amount = ''; form.description = ''; }
+    if (type === 'disputes') { form.contract_id = ''; form.raised_by = ''; form.reason = ''; }
     setCreateForm(form);
     setCreateModal({ open: true, type });
   };
@@ -303,7 +323,7 @@ export default function AdminPanel() {
           onChange={e => setSearch(e.target.value)} style={{ maxWidth: 360 }} />
       </div>
 
-      {tab !== 'dashboard' && (
+      {tab !== 'dashboard' && tab !== 'messages' && (
         <div className="admin-filter-row">
           <select value={filters[tab] || ''} onChange={e => {
             setFilters(prev => ({ ...prev, [tab]: e.target.value }));
@@ -317,7 +337,7 @@ export default function AdminPanel() {
               ['open', 'pending', 'active', 'completed', 'cancelled', 'disputed', 'resolved', 'rejected'].filter(s =>
                 (tab === 'jobs' && ['open', 'closed', 'cancelled', 'filled'].includes(s)) ||
                 (tab === 'proposals' && ['pending', 'accepted', 'rejected', 'withdrawn'].includes(s)) ||
-                (tab === 'contracts' && ['draft', 'pending_review', 'pending_signatures', 'pending_funding', 'active', 'delivered', 'revision_requested', 'completed', 'cancelled', 'disputed', 'pending'].includes(s)) ||
+                (tab === 'contracts' && ['draft', 'pending_review', 'pending_signatures', 'pending_funding', 'active', 'delivered', 'revision_requested', 'completed', 'cancelled', 'disputed'].includes(s)) ||
                 (tab === 'disputes' && ['open', 'resolved'].includes(s))
               ).map(s => <option key={s} value={s}>{s}</option>)
             )}
@@ -533,18 +553,23 @@ export default function AdminPanel() {
       {tab === 'messages' && (
         <div className="admin-section">
           <h3>Messages ({messages.length})</h3>
-          {filtered(messages, ['content', 'sender_id', 'receiver_id']).map(m => (
+          {filtered(messages, ['content', 'sender_id', 'receiver_id']).map(m => {
+            const sender = userCache[m.sender_id];
+            const receiver = userCache[m.receiver_id];
+            return (
             <div key={m.id} className="project-row" style={{ border: 'none', padding: '8px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
-                  <strong>{m.sender_id?.slice(0, 12)}</strong> → <strong>{m.receiver_id?.slice(0, 12)}</strong>
+                  <strong>{sender?.username || m.sender_id?.slice(0, 12)}</strong> → <strong>{receiver?.username || m.receiver_id?.slice(0, 12)}</strong>
+                  <span style={{ marginLeft: 8 }} className={`role-badge ${sender?.role || ''}`}>{sender?.role || ''}</span>
                   <span style={{ marginLeft: 8, color: 'var(--text-3)' }}>{new Date(m.created_at).toLocaleString()}</span>
                 </div>
                 <div style={{ fontSize: 13, marginTop: 2 }}>{m.content}</div>
               </div>
               <button className="btn btn-sm btn-danger" style={{ marginLeft: 8 }} onClick={() => confirmDelete('message', m.id)}>Del</button>
             </div>
-          ))}
+            );
+          })}
           <div className="admin-pagination">
             <button disabled={page.messages <= 1} onClick={() => setPage(p => ({ ...p, messages: p.messages - 1 }))}>←</button>
             {Array.from({ length: Math.min(totalPages.messages, 10) }, (_, i) => i + 1).map(n => (
@@ -579,7 +604,7 @@ export default function AdminPanel() {
               )}
               {createModal.type === 'jobs' && (
                 <>
-                  <div className="form-group"><label className="form-label">Client ID</label><input className="form-input" value={createForm.client_id} onChange={e => setCreateForm({ ...createForm, client_id: e.target.value })} /></div>
+                  <UserSearchSelect label="Client" value={createForm.client_id} onChange={v => setCreateForm({ ...createForm, client_id: v })} role="client" placeholder="Search client by name or email..." />
                   <div className="form-group"><label className="form-label">Title</label><input className="form-input" value={createForm.title} onChange={e => setCreateForm({ ...createForm, title: e.target.value })} /></div>
                   <div className="form-group"><label className="form-label">Budget (ETH)</label><input className="form-input" type="number" step="0.01" value={createForm.budget} onChange={e => setCreateForm({ ...createForm, budget: e.target.value })} /></div>
                   <div className="form-group"><label className="form-label">Category</label><input className="form-input" value={createForm.category} onChange={e => setCreateForm({ ...createForm, category: e.target.value })} /></div>
@@ -589,18 +614,25 @@ export default function AdminPanel() {
               {createModal.type === 'proposals' && (
                 <>
                   <div className="form-group"><label className="form-label">Job ID</label><input className="form-input" value={createForm.job_id} onChange={e => setCreateForm({ ...createForm, job_id: e.target.value })} /></div>
-                  <div className="form-group"><label className="form-label">Freelancer ID</label><input className="form-input" value={createForm.freelancer_id} onChange={e => setCreateForm({ ...createForm, freelancer_id: e.target.value })} /></div>
+                  <UserSearchSelect label="Freelancer" value={createForm.freelancer_id} onChange={v => setCreateForm({ ...createForm, freelancer_id: v })} role="freelancer" placeholder="Search freelancer by name or email..." />
                   <div className="form-group"><label className="form-label">Bid Amount (ETH)</label><input className="form-input" type="number" step="0.01" value={createForm.bid_amount} onChange={e => setCreateForm({ ...createForm, bid_amount: e.target.value })} /></div>
                   <div className="form-group"><label className="form-label">Cover Letter</label><textarea className="form-input" rows={3} value={createForm.cover_letter} onChange={e => setCreateForm({ ...createForm, cover_letter: e.target.value })} /></div>
                 </>
               )}
               {createModal.type === 'contracts' && (
                 <>
-                  <div className="form-group"><label className="form-label">Client ID</label><input className="form-input" value={createForm.client_id} onChange={e => setCreateForm({ ...createForm, client_id: e.target.value })} /></div>
-                  <div className="form-group"><label className="form-label">Freelancer ID</label><input className="form-input" value={createForm.freelancer_id} onChange={e => setCreateForm({ ...createForm, freelancer_id: e.target.value })} /></div>
+                  <UserSearchSelect label="Client" value={createForm.client_id} onChange={v => setCreateForm({ ...createForm, client_id: v })} role="client" placeholder="Search client by name or email..." />
+                  <UserSearchSelect label="Freelancer (optional)" value={createForm.freelancer_id} onChange={v => setCreateForm({ ...createForm, freelancer_id: v })} role="freelancer" placeholder="Search freelancer by name or email..." />
                   <div className="form-group"><label className="form-label">Title</label><input className="form-input" value={createForm.title} onChange={e => setCreateForm({ ...createForm, title: e.target.value })} /></div>
                   <div className="form-group"><label className="form-label">Total Amount (ETH)</label><input className="form-input" type="number" step="0.01" value={createForm.total_amount} onChange={e => setCreateForm({ ...createForm, total_amount: e.target.value })} /></div>
                   <div className="form-group"><label className="form-label">Description</label><textarea className="form-input" rows={3} value={createForm.description} onChange={e => setCreateForm({ ...createForm, description: e.target.value })} /></div>
+                </>
+              )}
+              {createModal.type === 'disputes' && (
+                <>
+                  <div className="form-group"><label className="form-label">Contract ID</label><input className="form-input" value={createForm.contract_id} onChange={e => setCreateForm({ ...createForm, contract_id: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Raised By</label><input className="form-input" value={createForm.raised_by} onChange={e => setCreateForm({ ...createForm, raised_by: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Reason</label><textarea className="form-input" rows={3} value={createForm.reason} onChange={e => setCreateForm({ ...createForm, reason: e.target.value })} /></div>
                 </>
               )}
             </div>

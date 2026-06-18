@@ -1,12 +1,10 @@
 from fastapi import Depends, Header
-from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
 from app.database import get_db
 from app.models.models import User
-from app.services.auth_service import is_token_blacklisted
+from app.services.auth_service import decode_token, is_token_blacklisted
 from app.utils.error_codes import ErrorCodes
 from app.utils.exceptions import AuthenticationError
 
@@ -22,13 +20,13 @@ async def get_current_user(
     if scheme.lower() != "bearer" or not token:
         raise AuthenticationError("Invalid authorization scheme", code=ErrorCodes.AUTH_INVALID_SCHEME)
 
-    try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise AuthenticationError("Invalid token payload", code=ErrorCodes.AUTH_INVALID_PAYLOAD)
-    except JWTError:
+    payload = decode_token(token)
+    if payload is None:
         raise AuthenticationError("Invalid or expired token", code=ErrorCodes.AUTH_INVALID_TOKEN)
+
+    user_id: str = payload.get("sub")
+    if user_id is None:
+        raise AuthenticationError("Invalid token payload", code=ErrorCodes.AUTH_INVALID_PAYLOAD)
 
     jti = payload.get("jti")
     if jti and await is_token_blacklisted(jti):

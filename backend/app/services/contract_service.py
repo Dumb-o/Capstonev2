@@ -58,14 +58,6 @@ async def create_contract(
     ipfs_result = await ipfs_service.upload_file_bytes(terms_json, f"contract_{client_id}.json")
     terms_cid = ipfs_result["cid"]
 
-    pk = private_key or settings.client_private_key
-    if not pk:
-        raise ValidationError(
-            "No private key configured for on-chain contract creation. "
-            "Set CLIENT_PRIVATE_KEY in environment.",
-            code=ErrorCodes.VALIDATION_NO_KEY,
-        )
-
     contract = Contract(
         job_id=data.job_id,
         client_id=client_id,
@@ -75,7 +67,7 @@ async def create_contract(
         total_amount=data.total_amount,
         deadline=data.deadline,
         terms_cid=terms_cid,
-        status=ContractStatus.pending_signatures,
+        status=ContractStatus.pending_signatures if data.freelancer_id else ContractStatus.draft,
     )
     db.add(contract)
     await db.flush()
@@ -93,19 +85,28 @@ async def create_contract(
 
     await db.flush()
 
-    freelancer = await db.get(User, data.freelancer_id)
-    on_chain = await create_contract_on_chain(
-        freelancer_address=freelancer.wallet_address,
-        title=data.title,
-        terms_cid=terms_cid,
-        total_amount_wei=to_wei(data.total_amount),
-        deadline=int(data.deadline.timestamp()) if data.deadline else 0,
-        milestone_descs=[m.description for m in data.milestones],
-        milestone_amounts=[to_wei(m.amount) for m in data.milestones],
-        client_private_key=pk,
-    )
-    contract.on_chain_id = on_chain["on_chain_id"]
-    contract.contract_address = on_chain["contract_address"]
+    if data.freelancer_id:
+        pk = private_key or settings.client_private_key
+        if not pk:
+            raise ValidationError(
+                "No private key configured for on-chain contract creation. "
+                "Set CLIENT_PRIVATE_KEY in environment.",
+                code=ErrorCodes.VALIDATION_NO_KEY,
+            )
+        freelancer = await db.get(User, data.freelancer_id)
+        if freelancer:
+            on_chain = await create_contract_on_chain(
+                freelancer_address=freelancer.wallet_address,
+                title=data.title,
+                terms_cid=terms_cid,
+                total_amount_wei=to_wei(data.total_amount),
+                deadline=int(data.deadline.timestamp()) if data.deadline else 0,
+                milestone_descs=[m.description for m in data.milestones],
+                milestone_amounts=[to_wei(m.amount) for m in data.milestones],
+                client_private_key=pk,
+            )
+            contract.on_chain_id = on_chain["on_chain_id"]
+            contract.contract_address = on_chain["contract_address"]
 
     return contract
 

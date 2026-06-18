@@ -156,7 +156,7 @@ class Contract(Base):
     id = Column(String, primary_key=True, default=lambda: generate_pseudonymous_id("ct"))
     job_id = Column(String, ForeignKey("jobs.id"), nullable=True, index=True)
     client_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    freelancer_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    freelancer_id = Column(String, ForeignKey("users.id"), nullable=True, index=True)
     title = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     total_amount = Column(Float, nullable=False)

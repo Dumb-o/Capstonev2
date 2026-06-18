@@ -558,7 +558,7 @@ async def app_exception_handler(request, exc):
 
 ### Missing Tests
 
-- **Frontend**: Zero tests (no jest/React Testing Library setup)
+- **Frontend**: 5 component tests (Navbar, Login, ProposalForm, ContractDetailPage, DashboardPage) — uses @testing-library/react
 - **Backend**: No tests for: `contract_service.py`, `recommendation_service.py`, messaging endpoints, proposal router, admin router
 - **Integration**: Tests exist but limited in scope
 
@@ -576,13 +576,13 @@ services:
   ipfs:           # IPFS Kubo v0.28.0
 ```
 
-**Note**: Frontend service NOT included in docker-compose. Frontend runs separately via `npm start`.
+**Note**: Frontend service is included in docker-compose. Multi-stage Dockerfile builds the React app and serves via nginx.
 
 ### Dockerfile
 
-- Backend Dockerfile exists at `docker/Dockerfile`
-- Frontend Dockerfile does NOT exist
-- Multi-service orchestration through docker-compose
+- Backend Dockerfile exists at `backend/Dockerfile`
+- Frontend Dockerfile exists at `frontend/Dockerfile` (multi-stage: node build → nginx serve)
+- Multi-service orchestration through docker-compose includes frontend service
 
 ---
 
@@ -590,7 +590,7 @@ services:
 
 | Area | Issue | Severity |
 |---|---|---|
-| **Database** | Schema uses `create_all()` instead of migrations | Medium |
+| **Database** | Hybrid migration strategy: Alembic migrations preferred, `create_all()` fallback on first run | Low |
 | **Database** | `schema.sql` enums mismatch Python models (case differences) | Low |
 | **Security** | Wallet address stored in DB (architecturally required — auth lookup, on-chain ops) | Documentation corrected |
 | **Security** | Single private key used for all on-chain operations | High |
@@ -598,10 +598,9 @@ services:
 | **API** | Job search filter (`?q=`) only client-side | Low |
 | **Web3** | `contract_service.py` uses deprecated `datetime.utcnow()` | Low |
 | **Code** | `bijee_frontend/` removed in Queue-15 (redundant demo frontend) | Resolved |
-| **Testing** | No frontend tests | High |
+| **Testing** | Frontend tests: 5 component tests exist (Navbar, Login, ProposalForm, ContractDetailPage, DashboardPage) | Low |
 | **Testing** | Missing backend unit tests for critical services | High |
-| **DevOps** | No frontend Dockerfile | Medium |
-| **DevOps** | Frontend not in docker-compose | Medium |
+| **DevOps** | Frontend Dockerfile exists (multi-stage nginx), frontend in docker-compose | Resolved |
 
 ---
 

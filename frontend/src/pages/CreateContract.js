@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/shared/Navbar';
 import { createContract } from '../services/contracts';
+import api from '../services/api';
 
 export default function CreateContract() {
   const navigate = useNavigate();
@@ -14,6 +15,37 @@ export default function CreateContract() {
     milestones: [{ description: '', amount: '', due_date: '' }],
   });
   const [submitting, setSubmitting] = useState(false);
+  const [freelancers, setFreelancers] = useState([]);
+  const [search, setSearch] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    api.get('/users', { params: { role: 'freelancer', limit: 100 } })
+      .then(({ data }) => setFreelancers(data.users || []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const filteredFreelancers = freelancers.filter((f) =>
+    (f.username || '').toLowerCase().includes(search.toLowerCase()) ||
+    (f.id || '').toLowerCase().includes(search.toLowerCase())
+  );
+
+  const selectFreelancer = (f) => {
+    setForm({ ...form, freelancer_id: f.id });
+    setSearch(f.username || f.id);
+    setShowDropdown(false);
+  };
 
   const addMilestone = () => {
     setForm({ ...form, milestones: [...form.milestones, { description: '', amount: '', due_date: '' }] });
@@ -34,7 +66,7 @@ export default function CreateContract() {
     setSubmitting(true);
     try {
       const data = {
-        freelancer_id: form.freelancer_id,
+        freelancer_id: form.freelancer_id || null,
         title: form.title,
         description: form.description,
         total_amount: parseFloat(form.total_amount),
@@ -69,9 +101,41 @@ export default function CreateContract() {
 
             <div className="card" style={{ padding: 24, maxWidth: 700 }}>
               <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                  <label className="form-label">Freelancer ID</label>
-                  <input className="form-input" type="text" value={form.freelancer_id} onChange={(e) => setForm({ ...form, freelancer_id: e.target.value })} placeholder="usr_..." required />
+                <div className="form-group" ref={dropdownRef} style={{ position: 'relative' }}>
+                  <label className="form-label">Freelancer <span className="text-muted">(optional)</span></label>
+                  <input
+                    className="form-input"
+                    type="text"
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value); setForm({ ...form, freelancer_id: '' }); setShowDropdown(true); }}
+                    onFocus={() => setShowDropdown(true)}
+                    placeholder="Search freelancers by name or ID..."
+                  />
+                  {showDropdown && (
+                    <div style={{
+                      position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10,
+                      background: 'var(--bg-card)', border: '1px solid var(--border)',
+                      borderRadius: 8, maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    }}>
+                      {filteredFreelancers.length === 0 ? (
+                        <div style={{ padding: '10px 14px', color: 'var(--text-muted)', fontSize: 13 }}>No freelancers found</div>
+                      ) : (
+                        filteredFreelancers.map((f) => (
+                          <div key={f.id} onClick={() => selectFreelancer(f)}
+                            style={{
+                              padding: '10px 14px', cursor: 'pointer', fontSize: 14,
+                              borderBottom: '1px solid var(--border)',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <div style={{ fontWeight: 500 }}>{f.username || 'Unnamed'}</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{f.id}</div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Title</label>

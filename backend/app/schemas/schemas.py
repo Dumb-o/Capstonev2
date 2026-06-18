@@ -149,7 +149,7 @@ class MilestoneDef(BaseModel):
 
 class ContractCreate(BaseModel):
     job_id: Optional[str] = None
-    freelancer_id: str
+    freelancer_id: Optional[str] = None
     title: SanitizedStr = Field(..., min_length=1, max_length=200)
     description: SanitizedOptionalStr = None
     total_amount: float = Field(..., gt=0)
@@ -161,7 +161,7 @@ class ContractResponse(BaseModel):
     id: str
     job_id: Optional[str] = None
     client_id: str
-    freelancer_id: str
+    freelancer_id: Optional[str] = None
     client_name: Optional[str] = None
     freelancer_name: Optional[str] = None
     job_title: Optional[str] = None

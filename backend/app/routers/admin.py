@@ -6,6 +6,7 @@ from app.config import settings
 from app.database import get_db
 from app.middleware.auth import get_current_admin
 from app.models.models import (
+    AdminAccount,
     Contract,
     ContractStatus,
     Dispute,
@@ -581,7 +582,55 @@ async def delete_user(
     user = result.scalar_one_or_none()
     if not user:
         raise NotFoundError("User not found", code=ErrorCodes.NOT_FOUND_USER)
-    await db.delete(user)
+
+    contract_ids = (await db.execute(
+        select(Contract.id).where(
+            (Contract.client_id == user_id) | (Contract.freelancer_id == user_id)
+        )
+    )).scalars().all()
+
+    if contract_ids:
+        contract_disputes = await db.execute(
+            select(Dispute).where(Dispute.contract_id.in_(contract_ids))
+        )
+        for d in contract_disputes.scalars():
+            await db.delete(d)
+
+        contracts = await db.execute(
+            select(Contract).where(Contract.id.in_(contract_ids))
+        )
+        for c in contracts.scalars():
+            await db.delete(c)
+
+    proposals = await db.execute(select(Proposal).where(Proposal.freelancer_id == user_id))
+    for prop in proposals.scalars():
+        await db.delete(prop)
+
+    jobs = await db.execute(select(Job).where(Job.client_id == user_id))
+    for job in jobs.scalars():
+        await db.delete(job)
+
+    messages = await db.execute(
+        select(Message).where(
+            (Message.sender_id == user_id) | (Message.receiver_id == user_id)
+        )
+    )
+    for msg in messages.scalars():
+        await db.delete(msg)
+
+    admin_accounts = await db.execute(
+        select(AdminAccount).where(AdminAccount.user_id == user_id)
+    )
+    for a in admin_accounts.scalars():
+        await db.delete(a)
+
+    disputes = await db.execute(
+        select(Dispute).where(Dispute.resolved_by == user_id)
+    )
+    for d in disputes.scalars():
+        d.resolved_by = None
+
+    await db.execute(User.__table__.delete().where(User.id == user_id))
     await db.flush()
     return {"ok": True}
 

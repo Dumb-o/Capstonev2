@@ -3,7 +3,7 @@
 > Ordered by safety: build blockers → startup blockers → critical bugs → requirement gaps → NFRs → tests → docs
 > Date: June 17, 2026
 > Source: `.wip/master-backlog.md`, `.wip/master-requirements.md`, `.wip/startup-report.md`
-> Status: Queues 01–24 ✅ Done — Queues 25–35 pending/stretch
+> Status: Queues 01–33 ✅ Done — All queues complete
 
 ---
 
@@ -18,8 +18,8 @@ Tier 5: Security ───────────── [Queue-12, Queue-13] �
 Tier 6: Infrastructure ─────── [Queue-14, Queue-15, Queue-34, Queue-35] ✅ Done
 Tier 7: Tests ──────────────── [Queue-16, Queue-17, Queue-18] ✅ Done
 Tier 8: Feature Gaps ───────── [Queue-19 → Queue-24] ✅ Done
-Tier 9: Stretch ────────────── [Queue-25 → Queue-30]
-Tier 10: Documentation ─────── [Queue-31 → Queue-33]
+Tier 9: Stretch ────────────── [Queue-25 → Queue-30] ✅ Done
+Tier 10: Documentation ─────── [Queue-31 → Queue-33] ✅ Done
 ```
 
 ---
@@ -533,13 +533,11 @@ Each queue item includes:
 | **Scope** | `backend/app/config.py` (add `JWT_SECRETS` — list of valid secrets), `backend/app/services/auth_service.py` (try each secret on decode) |
 | **Success** | (1) Multiple valid secrets supported during rotation window. (2) Tokens signed with old secret still work after rotation until they expire. |
 | **Depends on** | None |
-| **Status** | Pending |
+| **Status** | ✅ Done — JWT rotation implemented: `jwt_secrets` list in config.py, `decode_token()` tries primary + fallback secrets, 4 tests pass. |
 
 ---
 
-|| **Status** | ✅ Done — `GET /users/` endpoint implemented with role, search, skills, experience_level, is_available, min_rate, max_rate filters plus pagination. Tests pass. |
-
-### Queue-21: Implement Freelancer Directory Frontend (MB-016)
+### Queue-31: Complete .env.example documentation (MB-022)
 
 || Field | Value |
 |---|---|
@@ -565,13 +563,13 @@ Each queue item includes:
 | **Scope** | `.wip/master-sprint.md`, `docs/plans/sprint-plans.md`, `docs/generated/CAPSTONE_REVIEW.md` — update to reflect actual completion status |
 | **Success** | (1) Sprint plan accurately reflects current project reality. (2) All false completion claims corrected. |
 | **Depends on** | Queue-04 ✅, Queue-08 ✅, Queue-10 ✅ (resolved — all documentation contradictions fixed) |
-|| **Status** | ✅ Done — `GET /users/` endpoint implemented with role, search, skills, experience_level, is_available, min_rate, max_rate filters plus pagination. Tests pass. |
+**Status**: ✅ Done — 4 stale claims fixed in CODEBASE_KNOWLEDGE_BASE.md (frontend tests, Dockerfile existence, docker-compose inclusion, migration strategy).
 
-### Queue-21: Implement Freelancer Directory Frontend (MB-016)
+### Queue-33: Write Deployment Guide (MB-030)
 
 || Field | Value |
-|---|---|
-|| **Backlog ID** | MB-016 |
+|---|---|---|
+|| **Backlog ID** | MB-030 |
 | **Requirement** | CAP-03 |
 | **Priority** | MEDIUM — no deployment documentation exists |
 | **Reason** | No step-by-step guide for deploying FreeLedger to production. Only local Docker Compose is documented. |
@@ -579,7 +577,7 @@ Each queue item includes:
 | **Scope** | `docs/generated/DEPLOYMENT_GUIDE.md` — cover: prerequisites, Docker Compose (dev), production (reverse proxy, SSL, env vars), smart contract deployment, infrastructure requirements |
 | **Success** | (1) Deployment guide written. (2) Covers dev and production environments. (3) Includes smart contract deployment steps. |
 | **Depends on** | Queue-14 ✅ (frontend Docker — container exists) |
-| **Status** | Pending |
+| **Status** | ✅ Done — DEPLOYMENT_GUIDE.md created covering architecture, infra requirements, env vars, Docker Compose, frontend/backend/IPFS/contract deployment, SSL/TLS, monitoring, backup/recovery, troubleshooting, and deployment verification. |
 
 ---
 
@@ -613,17 +611,17 @@ Each queue item includes:
 | 22 | MB-018 | People you may know endpoint | 0.5 day | 20 | ✅ Done |
 | 23 | MB-019 | Proposal-to-message auto-thread | 0.5 day | — | ✅ Done |
 | 24 | MB-020 | Enhanced chat UI | 1 day | — | ✅ Done |
-| 25 | MB-023 | Real-time messaging | 2 days | 16 | Pending |
-| 26 | MB-024 | Notifications system | 2 days | 25 | Pending |
-| 27 | MB-025 | API response time monitoring | 0.5 day | — | Pending |
-| 28 | MB-026 | IPFS availability monitoring | 0.5 day | — | Pending |
-| 29 | MB-027 | Event listener health monitoring | 0.5 day | — | Pending |
-| 30 | MB-029 | JWT secret rotation support | 0.5 day | — | Pending |
+| 25 | MB-023 | Real-time messaging | 2 days | 16 | ✅ Done |
+| 26 | MB-024 | Notifications system | 2 days | 25 | ✅ Done |
+| 27 | MB-025 | API response time monitoring | 0.5 day | — | ✅ Done |
+| 28 | MB-026 | IPFS availability monitoring | 0.5 day | — | ✅ Done |
+| 29 | MB-027 | Event listener health monitoring | 0.5 day | — | ✅ Done |
+| 30 | MB-029 | JWT secret rotation support | 0.5 day | — | ✅ Done |
 | 31 | MB-022 | Complete .env.example docs | 1 hour | — | ✅ Done |
-| 32 | MB-007 | Update sprint plan documentation | 2 hours | 04, 08, 10 | Pending |
-| 33 | MB-030 | Write deployment guide | 1 day | 14 | Pending |
+| 32 | MB-007 | Update sprint plan documentation | 2 hours | 04, 08, 10 | ✅ Done |
+| 33 | MB-030 | Write deployment guide | 1 day | 14 | ✅ Done |
 
-**Total remaining effort**: ~7-9 developer-days (Queues 01–24 ✅ Done; Queues 25–33 remaining: 25, 26, 27, 28, 29, 30, 32, 33)
+**Total remaining effort**: 0 developer-days — All 33 queues complete.
 
 ---
 
@@ -671,12 +669,12 @@ Each queue item is tagged to its target sprint from `.wip/master-sprint.md`. Ite
 
 | Sprint | Focus | Queue Items | Tags |
 |---|---|---|---|
-| Sprint 1 | Documentation Integrity & Security | Queue-08 ✅, Queue-09 ✅, Queue-10 ✅, Queue-12 ✅, Queue-04 ✅, Queue-32 | [docs] [security] |
+| Sprint 1 | Documentation Integrity & Security | Queue-08 ✅, Queue-09 ✅, Queue-10 ✅, Queue-12 ✅, Queue-04 ✅, Queue-32 ✅ | [docs] [security] |
 | Sprint 2 | User-Facing Fixes & Infrastructure | Queue-05 ✅, Queue-06 ✅, Queue-11 ✅, Queue-07 ✅, Queue-14 ✅, Queue-15 ✅, Queue-34 ✅, Queue-35 ✅ | [frontend] [backend] [infra] |
-| Sprint 3 | Testing Core | Queue-13 ✅, Queue-16 ✅, Queue-17 ✅, Queue-18 ✅, Queue-27, Queue-28, Queue-29, Queue-30 | [test] [backend] [contracts] |
-|| Sprint 4 | Freelancer Discovery | Queue-19 ✅, Queue-20 ✅, Queue-21 ✅, Queue-22 ✅, Queue-23 ✅, Queue-24 ✅ | [backend] [frontend] |
-| Sprint 5 | Stretch & Polish | Queue-25, Queue-26, Queue-31 ✅, Queue-33 | [backend] [frontend] [docs] |
-| Sprint 6 | Documentation Reconciliation | Queue-32 | [docs] |
+| Sprint 3 | Testing Core | Queue-13 ✅, Queue-16 ✅, Queue-17 ✅, Queue-18 ✅, Queue-27 ✅, Queue-28 ✅, Queue-29 ✅, Queue-30 ✅ | [test] [backend] [contracts] |
+| Sprint 4 | Freelancer Discovery | Queue-19 ✅, Queue-20 ✅, Queue-21 ✅, Queue-22 ✅, Queue-23 ✅, Queue-24 ✅ | [backend] [frontend] |
+| Sprint 5 | Stretch & Polish | Queue-25 ✅, Queue-26 ✅, Queue-31 ✅, Queue-33 ✅ | [backend] [frontend] [docs] |
+| Sprint 6 | Documentation Reconciliation | Queue-32 ✅ | [docs] |
 
 Queue-01, Queue-02, Queue-03 are ✅ Done — completed before sprint execution began.
 
@@ -725,14 +723,14 @@ Step 14: Queue-14 (MB-009) — frontend Dockerfile         1 day    [infra] ✅
 Step 15: Queue-15 (MB-012) — cleanup frontend trees      1 day    [frontend][infra] ✅
 ```
 
-### Phase C: Tests (stretch pending)
+### Phase C: Tests — ✅ ALL DONE
 
 ```
 Step 16: Queue-18 (MB-028) — contract edge case tests    0.5 day  [contracts] ✅
-Step 17: Queue-27 (MB-025) — API response monitoring     0.5 day  [backend][test]
-Step 18: Queue-28 (MB-026) — IPFS monitoring             0.5 day  [backend][test]
-Step 19: Queue-29 (MB-027) — event listener health       0.5 day  [backend][test]
-Step 20: Queue-30 (MB-029) — JWT rotation support        0.5 day  [backend][security]
+Step 17: Queue-27 (MB-025) — API response monitoring     0.5 day  [backend][test] ✅
+Step 18: Queue-28 (MB-026) — IPFS monitoring             0.5 day  [backend][test] ✅
+Step 19: Queue-29 (MB-027) — event listener health       0.5 day  [backend][test] ✅
+Step 20: Queue-30 (MB-029) — JWT rotation support        0.5 day  [backend][security] ✅
 Step 21: Queue-16 (MB-005) — backend service tests       3 days   [test] ✅
 Step 22: Queue-17 (MB-004) — frontend component tests   1.5 days  [test][frontend] ✅
 ```
@@ -748,22 +746,22 @@ Step 27: Queue-23 (MB-019) — proposal→message thread    0.5 day   [backend] 
 Step 28: Queue-24 (MB-020) — enhanced chat UI            1 day    [frontend] ✅
 ```
 
-### Phase E: Documentation Reconciliation
+### Phase E: Documentation Reconciliation — ✅ ALL DONE
 
 ```
 Step 29: Queue-32 (MB-007) — update sprint plan docs     2 hrs    [docs] ✅
 ```
 
-### Phase F: Stretch & Polish
+### Phase F: Stretch & Polish — ✅ ALL DONE
 
 ```
-Step 30: Queue-25 (MB-023) — real-time messaging         2 days   [backend][frontend]
-Step 31: Queue-26 (MB-024) — notifications system        2 days   [backend][frontend]
-Step 32: Queue-33 (MB-030) — deployment guide            1 day    [docs]
-Step 33: Queue-27 (MB-025) — API response monitoring     0.5 day  [backend][test]
-Step 34: Queue-28 (MB-026) — IPFS monitoring             0.5 day  [backend][test]
-Step 35: Queue-29 (MB-027) — event listener health       0.5 day  [backend][test]
-Step 36: Queue-30 (MB-029) — JWT rotation support        0.5 day  [backend][security]
+Step 30: Queue-25 (MB-023) — real-time messaging         2 days   [backend][frontend] ✅
+Step 31: Queue-26 (MB-024) — notifications system        2 days   [backend][frontend] ✅
+Step 32: Queue-33 (MB-030) — deployment guide            1 day    [docs] ✅
+Step 33: Queue-27 (MB-025) — API response monitoring     0.5 day  [backend][test] ✅
+Step 34: Queue-28 (MB-026) — IPFS monitoring             0.5 day  [backend][test] ✅
+Step 35: Queue-29 (MB-027) — event listener health       0.5 day  [backend][test] ✅
+Step 36: Queue-30 (MB-029) — JWT rotation support        0.5 day  [backend][security] ✅
 ```
 
-**Total remaining**: ~7-9 developer-days across 8 pending steps (Queues 25-30, 33).
+**Total remaining**: 0 developer-days — All 33 queues complete.
