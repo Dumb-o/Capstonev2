@@ -1,0 +1,15 @@
+Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+Deployer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+
+=== Dedicated Development Wallets ===
+Client Wallet (Hardhat #0):
+  Address:    0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+  Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+  Role:       client
+
+Freelancer Wallet (Hardhat #1):
+  Address:    0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+  Private Key: 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
+  Role:       freelancer
+
+Import both wallets into MetaMask for testing.

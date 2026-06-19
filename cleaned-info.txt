@@ -1,0 +1,4 @@
+Cleaned project
+Source: /home/sarun/Desktop/Capstone_Pawan_Completed
+Created: 2026-06-19T00:00:00Z
+Target git branch: cleaned
