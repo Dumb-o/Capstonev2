@@ -37,9 +37,9 @@ command -v npm     >/dev/null 2>&1 || fail "npm is required."
 command -v python3 >/dev/null 2>&1 || fail "Python 3.12+ is required."
 
 NODE_VER=$(node --version | sed 's/v//' | cut -d. -f1)
-PYTHON_VER=$(python3 --version | sed 's/Python //' | cut -d. -f1)
+PYTHON_VER=$(python3 --version | sed 's/Python //' | cut -d. -f1-2 | cut -d. -f2)
 [ "$NODE_VER" -ge 18 ] 2>/dev/null || fail "Node.js 18+ required (found: $(node --version))"
-[ "$PYTHON_VER" -ge 12 ] 2>/dev/null || fail "Python 3.12+ required (found: $(python3 --version))"
+[ "${PYTHON_VER:-0}" -ge 12 ] 2>/dev/null || fail "Python 3.12+ required (found: $(python3 --version))"
 
 ok "docker    $(docker --version)"
 ok "docker compose $(docker compose version)"

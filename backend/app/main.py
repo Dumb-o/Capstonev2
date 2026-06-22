@@ -95,11 +95,22 @@ def _code_for_status(status_code: int) -> str:
     return ErrorCodes.INTERNAL_ERROR
 
 
+def _cors_response(request, status_code: int, content: dict) -> JSONResponse:
+    resp = JSONResponse(status_code=status_code, content=content)
+    origin = request.headers.get("origin")
+    if origin in settings.cors_origins:
+        resp.headers["access-control-allow-origin"] = origin
+        resp.headers["access-control-allow-credentials"] = "true"
+        resp.headers["vary"] = "Origin"
+    return resp
+
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
+    return _cors_response(
+        request,
+        exc.status_code,
+        {
             "detail": exc.detail,
             "code": getattr(exc, "code", _code_for_status(exc.status_code)),
         },
@@ -108,17 +119,19 @@ async def http_exception_handler(request, exc):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=422,
-        content={"detail": str(exc), "code": ErrorCodes.VALIDATION_ERROR},
+    return _cors_response(
+        request,
+        422,
+        {"detail": str(exc), "code": ErrorCodes.VALIDATION_ERROR},
     )
 
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error", "code": ErrorCodes.INTERNAL_ERROR},
+    return _cors_response(
+        request,
+        500,
+        {"detail": "Internal server error", "code": ErrorCodes.INTERNAL_ERROR},
     )
 
 
